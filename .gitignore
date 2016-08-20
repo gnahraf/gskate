@@ -1,0 +1,8 @@
+# Ignoring all hidden files for now..
+#
+.*
+target/
+
+# So you can move generated javadocs here
+apidocs/
+

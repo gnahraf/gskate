@@ -89,27 +89,7 @@ public class Tetra {
   
   
   public int getTetherIndex(int bobA, int bobB) {
-    int i, j;
-    {
-      if (bobA < bobB) {
-        i = bobA;
-        j = bobB;
-      } else {
-        i = bobB;
-        j = bobA;
-      }
-    }
-    
-    if (j - i > 3 || j == i)
-      throw new IndexOutOfBoundsException(bobA + "," + bobB);
-    
-    switch (i) {
-    case 0: return j - 1;
-    case 1: return j + 1;
-    case 2: return 5;
-    default:
-      throw new IndexOutOfBoundsException(bobA + "," + bobB);
-    }
+    return TetraEdge.forBobs(bobA, bobB).index;
   }
   
   
@@ -139,17 +119,34 @@ public class Tetra {
   }
   
   
+  /**
+   * Updates the acceleration vectors of the 4 bobs using the given <tt>potential</tt>,
+   * taking into account the craft's tether forces.
+   */
   public void updateForces(Potential potential) {
     
-    // clear accelerations..
+    // clear and set to gravitational forces
     for (int i = 0; i < 4; ++i) {
       Bob bob = bobs[i];
       bob.clearAcceleration();
       potential.force(bob);
     }
 
+    // add the tether forces
     for (int tether = 0; tether < 6; ++tether)
       addTetherForces(tether);
+  }
+  
+  
+  
+  /**
+   * Clears the acceleration vectors of the 4 bobs. Note, you can do as you please with
+   * the acceleration vectors. They are really temporary vectors; they don't encapsulate
+   * state.
+   */
+  public void clearForces() {
+    for (int i = 0; i < 4; ++i)
+      bobs[i].clearAcceleration();
   }
   
   
@@ -182,27 +179,11 @@ public class Tetra {
     // find the bobs a and b at the ends of this tether
     Bob a, b;
     {
-      int i, j;
       
-      switch (tetherIndex) {
-      case 0:
-        i = 0; j = 1; break;
-      case 1:
-        i = 0; j = 2; break;
-      case 2:
-        i = 0; j = 3; break;
-      case 3:
-        i = 1; j = 2; break;
-      case 4:
-        i = 1; j = 3; break;
-      case 5:
-        i = 2; j = 3; break;
-      default:
-        throw new RuntimeException("tether " + tetherIndex);
-      }
+      TetraEdge edge = TetraEdge.forIndex(tetherIndex);
       
-      a = bobs[i];
-      b = bobs[j];
+      a = bobs[edge.loBob];
+      b = bobs[edge.hiBob];
     }
 
     
@@ -229,6 +210,7 @@ public class Tetra {
     aby *= tetherValue;
     abz *= tetherValue;
     
+    // add the equal and opposite forces
     if (attractive) {
       a.addAcceleration(abx, aby, abz);
       b.addAcceleration(-abx, -aby, -abz);
@@ -237,6 +219,16 @@ public class Tetra {
       b.addAcceleration(abx, aby, abz);
       a.addAcceleration(-abx, -aby, -abz);
     }
+  }
+
+
+
+
+  public void copyFrom(Tetra other) {
+    for (int i = 0; i < 4; ++i)
+      bobs[i].copyFrom(other.bobs[i]);
+    for (int i = 0; i < 6; ++i)
+      tethers[i] = other.tethers[i];
   }
   
   

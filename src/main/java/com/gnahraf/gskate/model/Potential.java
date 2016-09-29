@@ -4,7 +4,8 @@
 package com.gnahraf.gskate.model;
 
 /**
- * Potential energy function.
+ * Potential energy function. Note this is generally a time-varying
+ * function.
  */
 public abstract class Potential {
   

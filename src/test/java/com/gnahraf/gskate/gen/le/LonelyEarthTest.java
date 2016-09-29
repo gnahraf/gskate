@@ -30,14 +30,22 @@ public class LonelyEarthTest {
     System.out.println("Orbital period ~ " + (int) period + " seconds");
     printCraft(system);
     for (int i = reportLaps; i--> 0;) {
-      system.animateMills(lapMillis);
+      system.animateMillis(lapMillis);
       printCraft(system);
     }
     
     printTetherLengths(system);
   }
   
-  private void printTetherLengths(LonelyEarth system) {
+  
+  public static double roughPeriod(LonelyEarth system) {
+    double r = system.getCraft().getBob(0).distance(0, 0, 0);
+    double circum = 2 * r * Math.PI;
+    double period = circum / system.getCraft().getBob(0).getV();
+    return period;
+  }
+  
+  public static void printTetherLengths(LonelyEarth system) {
     
     Tetra craft = system.getCraft();
 
@@ -54,7 +62,7 @@ public class LonelyEarthTest {
   }
   
   
-  private void printCraft(LonelyEarth system) {
+  public static void printCraft(LonelyEarth system) {
     Tetra craft = system.getCraft();
     double x, y, z = y = x = 0;
     for (int i = 0; i < 4; ++i) {
@@ -72,10 +80,20 @@ public class LonelyEarthTest {
     System.out.println();
     System.out.println("R: " + r + "  m (" + (int) (r - Constants.EARTH_RADIUS) + " m above ground)");
     System.out.println("Position:   (" + x + ", " + y + ", " + z + ")");
-    System.out.println("PE:        " + craft.getPe(system.getEarth()) + " J");
+    System.out.println("PE:        " + craft.getPe(system.getPotential()) + " J");
     System.out.println("KE:        " + craft.getKe() + " J");
+    System.out.println("Energy     " + (craft.getKe() + craft.getPe(system.getPotential())) + " J");
     System.out.println("CM KE:     " + craft.getCmKe() + " J");
-    System.out.println("CM Energy: " + craft.getCmEnergy(system.getEarth()) + " J");
+    System.out.println("CM Energy: " + craft.getCmEnergy(system.getPotential()) + " J");
+  }
+  
+  
+  
+  public static double computePeriodMillis(LonelyEarth system) {
+    double r = system.getCraft().getBob(0).distance(0, 0, 0);
+    double circum = 2 * r * Math.PI;
+    double period = circum / system.getCraft().getBob(0).getV();
+    return (long) (period * 1000);
   }
 
 }

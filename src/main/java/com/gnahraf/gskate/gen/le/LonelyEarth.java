@@ -5,6 +5,7 @@ package com.gnahraf.gskate.gen.le;
 
 import com.gnahraf.gskate.model.Bob;
 import com.gnahraf.gskate.model.Constants;
+import com.gnahraf.gskate.model.Simulation;
 import com.gnahraf.gskate.model.SphericalBodyPotential;
 import com.gnahraf.gskate.model.Tetra;
 
@@ -12,7 +13,7 @@ import com.gnahraf.gskate.model.Tetra;
  * A geo-centric simulation. The earth does not move about anything.
  * Newton's laws hold, but earth is alone.
  */
-public class LonelyEarth {
+public class LonelyEarth extends Simulation {
   
   
   public static class Constraints implements Cloneable {
@@ -40,27 +41,19 @@ public class LonelyEarth {
     
   }
   
-  
-  /**
-   * Time in milliseconds. Starts at 0.
-   */
-  private long time;
-  
-  private final SphericalBodyPotential earth = new SphericalBodyPotential();
-  
-  private final Tetra craft = new Tetra();
-  
   private final Constraints constraints;
   
   
   
   public LonelyEarth(Constraints constraints) {
     
+    super(new SphericalBodyPotential());
+    
     this.constraints = constraints.clone();
     
     double r = Constants.EARTH_RADIUS + this.constraints.initKmsAboveGround*1000;
     
-    double orbitalSpeed = Math.sqrt(earth.getG() / r);
+    double orbitalSpeed = Math.sqrt(((SphericalBodyPotential) potential).getG() / r);
     
     // our tetra starts out with each edge about 100 meters wide. One orientation for
     // the coordinates of a regular tetrahedron with edge length 2 centered about
@@ -74,7 +67,7 @@ public class LonelyEarth {
     
     double initEdgeLength = constraints.initTetherLength;
     
-    double sine45 = 1 / Math.sqrt(2);
+    double sine45 = 1.0 / Math.sqrt(2);
     
     double scale = initEdgeLength / 2;
     double scaled45 = scale*sine45;
@@ -99,31 +92,8 @@ public class LonelyEarth {
   
   
   
-  
-  
-  public Tetra getCraft() {
-    return craft;
-  }
-  
-  
-  public SphericalBodyPotential getEarth() {
-    return earth;
-  }
-  
-  
-  /**
-   * Returns the animation time in milliseconds.
-   */
-  public long getTime() {
-    return time;
-  }
-  
-  
-  public void animateMills(long millis) {
-    double seconds = millis;
-    seconds /= 1000;
-    craft.animate(earth, seconds, constraints.timeFineness);
-    time += millis;
+  public void animateMillis(long millis) {
+    animateMillis(millis, constraints.timeFineness);
   }
 
 }

@@ -33,6 +33,8 @@ public class ShapeFuzzyController {
    * However, the idea here is to keep track of the virtual acceleration along the
    * edge. (The acceleration is virtual, because it's from the point of view of a
    * non-inertial reference frame.)
+   * <p/>
+   * This was an experiment. Still, I'll keep it around for instrumentation.
    */
   private final double[] lengthRates = new double[6];
   
@@ -76,7 +78,9 @@ public class ShapeFuzzyController {
   
   
   
-  
+  /**
+   * Sets the target edge lengths to the current edge lengths.
+   */
   public void freeze() {
     Tetra craft = system.getCraft();
     
@@ -89,6 +93,10 @@ public class ShapeFuzzyController {
     }
     lrTime = system.getTime();
   }
+  
+  
+  
+  
   
   
   
@@ -149,89 +157,6 @@ public class ShapeFuzzyController {
   }
   
   
-  private void adjustTether2(int tid, Bob work) {
-    Tetra craft = system.getCraft();
-    Bob diff = work;
-    
-    TetraEdge edge = TetraEdge.forIndex(tid);
-    // make diff a relative position and relative velocity vector
-    // from lo-index bob to hi-index bob
-    // (we don't care about the relative acceleration)
-    diff.copyFrom(craft.getBob(edge.hiBob));
-    diff.subtract(craft.getBob(edge.loBob));
-    
-    double edgeLen = diff.distance(0, 0, 0);
-    if (edgeLen < minTetherLength)
-      throw new IllegalStateException("bobs collided " + edge + "; distance " + edgeLen);
-    
-    
-    // take the dot product of the [relative] velocity vectory
-    // with the [normalized] relative position vector..
-    // this gives us the relative speed of the higher [index] bob relative to
-    // the lower bob. (So negative speed means edge length is contracting)
-    double relativeSpeed = diff.dotVelocity(diff.getX(), diff.getY(), diff.getZ()) / edgeLen;
-    
-    double oldRelativeSpeed = lengthRates[tid];
-    
-    double timeDelta = (system.getTime() - lrTime) / 1000.0;
-    
-    double acceleration = (relativeSpeed - oldRelativeSpeed) / timeDelta;
-    
-    
-    
-    // negative edge diff means we need to contract
-    double edgeDiff = lengths[tid] - edgeLen;
-    
-    // projected edge length change at time fuzzyTimeToTarget
-    double projectedLengthChange =
-        (relativeSpeed + acceleration * fuzzyTimeToTarget / 2) * fuzzyTimeToTarget;
-    
-    // 
-    double projectedEdgeDiff = edgeDiff - projectedLengthChange;
-    if (Math.abs(projectedEdgeDiff) < IGNORABLE_DELTA)
-      return;
-
-    // I'm not good at remembering signs, so..
-    // negative edge length diff  means we need to pull more
-    boolean pullMore;
-    int deltaSign;
-    if (projectedEdgeDiff < 0) {
-      pullMore = true;
-      deltaSign = -1;
-    } else {
-      pullMore = false;
-      deltaSign = 1;
-    }
-    
-    
-    
-    double ratio = Math.abs(projectedEdgeDiff / lengths[tid]);
-    double tetherForce = craft.getTetherByIndex(tid);
-    
-    double deltaForce;
-    
-    if (ratio > 0.25)
-      deltaForce = 0.05;
-    else if (ratio > 0.125)
-      deltaForce = 0.02;
-    else if (ratio > 0.0625)
-      deltaForce = 0.01;
-    else if (ratio > 0.03125)
-      deltaForce = 0.005;
-    else
-      deltaForce = 0.001;
-    
-    
-    tetherForce += deltaSign * deltaForce;
-    if (tetherForce < -maxTensileForce)
-      tetherForce = -maxTensileForce;
-    else if (tetherForce > maxCompressiveForce)
-      tetherForce = maxCompressiveForce;
-    
-    craft.setTetherByIndex(tid, tetherForce);
-  }
-  
-  
   private void adjustTether(int tid, Bob work) {
     Tetra craft = system.getCraft();
     Bob diff = work;
@@ -254,34 +179,52 @@ public class ShapeFuzzyController {
     // the lower bob. (So negative speed means edge length is contracting)
     double relativeSpeed = diff.dotVelocity(diff.getX(), diff.getY(), diff.getZ()) / edgeLen;
     
+    double oldRelativeSpeed = lengthRates[tid];
+    // update
+    this.lengthRates[tid] = relativeSpeed;
+    
+    
+    double timeDelta = (system.getTime() - lrTime) / 1000.0;
+    
+    double acceleration = (relativeSpeed - oldRelativeSpeed) / timeDelta;
+    
+    
     
     // negative edge diff means we need to contract
     double edgeDiff = lengths[tid] - edgeLen;
     
-    // negative target speed means we're contracting
-    double targetSpeed = edgeDiff / (1.0 * fuzzyTimeToTarget);
+    // projected edge length change at time fuzzyTimeToTarget
+    double projectedLengthChange =
+        (relativeSpeed + acceleration * fuzzyTimeToTarget / 2) * fuzzyTimeToTarget;
     
-    double speedDelta = targetSpeed - relativeSpeed;
-    if (Math.abs(speedDelta) < IGNORABLE_DELTA)
+    // 
+    double projectedEdgeDiff = edgeDiff - projectedLengthChange;
+    if (Math.abs(projectedEdgeDiff) < IGNORABLE_DELTA)
       return;
 
     // I'm not good at remembering signs, so..
-    // negative speed delta from target means we need to pull more
-    boolean pullMore = speedDelta < 0;
-    int deltaSign;
-    if (speedDelta < 0) {
-      pullMore = true;
-      deltaSign = -1;
-    } else {
-      pullMore = false;
-      deltaSign = 1;
-    }
+    // negative edge length diff  means we need to pull more
+    int deltaSign = projectedEdgeDiff < 0 ? -1 : 1;
     
     
     
-    double ratio = Math.abs(speedDelta / relativeSpeed);
+    double ratio = Math.abs(projectedEdgeDiff / lengths[tid]);
     double tetherForce = craft.getTetherByIndex(tid);
     
+    double deltaForce = fuzzyDeltaForce(ratio);
+    
+    tetherForce += deltaSign * deltaForce;
+    if (tetherForce < -maxTensileForce)
+      tetherForce = -maxTensileForce;
+    else if (tetherForce > maxCompressiveForce)
+      tetherForce = maxCompressiveForce;
+    
+    craft.setTetherByIndex(tid, tetherForce);
+  }
+  
+  
+  
+  private double fuzzyDeltaForce(double ratio) {
     double deltaForce;
     
     if (ratio > 0.25)
@@ -295,16 +238,9 @@ public class ShapeFuzzyController {
     else
       deltaForce = 0.0001;
     
-    
-    tetherForce += deltaSign * deltaForce;
-    if (tetherForce < -maxTensileForce)
-      tetherForce = -maxTensileForce;
-    else if (tetherForce > maxCompressiveForce)
-      tetherForce = maxCompressiveForce;
-    
-    craft.setTetherByIndex(tid, tetherForce);
+    return deltaForce;
   }
   
-  private final static double IGNORABLE_DELTA = 0.05;
+  private final static double IGNORABLE_DELTA = 0.005;
 
 }

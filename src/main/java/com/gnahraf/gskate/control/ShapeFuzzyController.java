@@ -7,7 +7,9 @@ package com.gnahraf.gskate.control;
 import com.gnahraf.gskate.model.Bob;
 import com.gnahraf.gskate.model.Potential;
 import com.gnahraf.gskate.model.Simulation;
+import com.gnahraf.gskate.model.TetherController;
 import com.gnahraf.gskate.model.Tetra;
+import com.gnahraf.gskate.model.TetraCorner;
 import com.gnahraf.gskate.model.TetraEdge;
 
 /**
@@ -20,7 +22,7 @@ import com.gnahraf.gskate.model.TetraEdge;
  * <p/>
  * 
  */
-public class ShapeFuzzyController {
+public class ShapeFuzzyController extends TetherController {
   
   /**
    * Target lengths of the 6 edges of the tetra. So collectively, these define the size and shape.
@@ -33,8 +35,6 @@ public class ShapeFuzzyController {
    * However, the idea here is to keep track of the virtual acceleration along the
    * edge. (The acceleration is virtual, because it's from the point of view of a
    * non-inertial reference frame.)
-   * <p/>
-   * This was an experiment. Still, I'll keep it around for instrumentation.
    */
   private final double[] lengthRates = new double[6];
   
@@ -82,13 +82,12 @@ public class ShapeFuzzyController {
    * Sets the target edge lengths to the current edge lengths.
    */
   public void freeze() {
-    Tetra craft = system.getCraft();
     
     Bob work = new Bob();
     
     for (int index = 0; index < 6; ++index) {
       TetraEdge edge = TetraEdge.forIndex(index);
-      lengths[index] = craft.getBob(edge.loBob).distance(craft.getBob(edge.hiBob));
+      lengths[index] = getCurrentEdgeLength(edge);
       lengthRates[index] = getTetherLengthRate(index, work);
     }
     lrTime = system.getTime();
@@ -97,9 +96,168 @@ public class ShapeFuzzyController {
   
   
   
+  public double getCurrentEdgeLength(TetraEdge edge) {
+    Tetra craft = system.getCraft();
+    return craft.getBob(edge.loBob).distance(craft.getBob(edge.hiBob));
+  }
   
   
   
+  
+  public void setEquiEdgeLength(double newLength) {
+    if (newLength < minTetherLength)
+      throw new IllegalArgumentException(
+          "newLength " + newLength + " < minTetherLength " + minTetherLength);
+    
+    for (int index = 0; index < 6; ++index)
+      lengths[index] = newLength;
+      
+  }
+  
+  
+  
+  public void setEdgeLengths(double[] edges) {
+    
+    // validate..
+    // ensure no length is too small
+    for (int index = 6; index-- > 0; )
+      if (edges[index] < minTetherLength)
+        throw new IllegalArgumentException(
+            "edges[" + index + "] " + edges[index] + " < minTetherLength " + minTetherLength);
+
+    // we validate the following triangle relation for each face..
+    // let c be the max length, and b, and c the other 2 sides
+    // then,
+    // c < a + b
+    // 2c < a + b + c
+    
+    // proceed with each face, each face being defined as the
+    // triangle that does not contain the bob with that face index
+    // i.e. the face opposite the bob at that index
+    for (int face = 0; face < 4; ++face) {
+      int i = (face + 1) % 4;
+      int j = (face + 2) % 4;
+      int k = (face + 3) % 4;
+      
+      double a = edges[TetraEdge.forBobs(i, j).index];
+      double b = edges[TetraEdge.forBobs(j, k).index];
+      double c = edges[TetraEdge.forBobs(k, i).index];
+      
+      double max = Math.max(c, Math.max(a, b));
+      if (max * 2 >= a + b + c)
+        throw new IllegalArgumentException("face " + face);
+    }
+    
+    for (int index = 6; index-- > 0;)
+      lengths[index] = edges[index];
+  }
+  
+  
+  
+//  private void setEdgeLengthsSansMinLengthCheck(double[] edges) {
+//    // we validate the following triangle relation for each face..
+//    // let c be the max length, and b, and c the other 2 sides
+//    // then,
+//    // c < a + b
+//    // 2c < a + b + c
+//    
+//    // proceed with each face, each face being defined as the
+//    // triangle that does not contain the bob with that face index
+//    // i.e. the face opposite the bob at that index
+//    for (int face = 0; face < 4; ++face) {
+//      int i = (face + 1) % 4;
+//      int j = (face + 2) % 4;
+//      int k = (face + 3) % 4;
+//      
+//      double a = edges[TetraEdge.forBobs(i, j).index];
+//      double b = edges[TetraEdge.forBobs(j, k).index];
+//      double c = edges[TetraEdge.forBobs(k, i).index];
+//      
+//      double max = Math.max(c, Math.max(a, b));
+//      if (max * 2 >= a + b + c)
+//        throw new IllegalArgumentException("face " + face);
+//    }
+//    
+//    for (int index = 6; index-- > 0;)
+//      lengths[index] = edges[index];
+//  }
+  
+  
+  
+  public void stretchCornerTarget(TetraCorner corner, double factor) {
+    stretchCornerImpl(corner, true, factor);
+  }
+  
+  
+  public void stretchCorner(TetraCorner corner, double factor) {
+    stretchCornerImpl(corner, false, factor);
+  }
+  
+  private void stretchCornerImpl(TetraCorner corner, boolean target, double factor) {
+    double[] newLengths = new double[6];
+    for (int index = 6; index-- > 0; )
+      newLengths[index] = lengths[index];
+    
+    if (target) {
+      for (int oi = 3; oi-- > 0; ) {
+        TetraEdge edge = corner.edge(oi);
+        newLengths[edge.index] *= factor;
+      }
+    } else {
+      for (int oi = 3; oi-- > 0; ) {
+        TetraEdge edge = corner.edge(oi);
+        newLengths[edge.index] = getCurrentEdgeLength(edge) * factor;
+      }
+    }
+    // finally, validate and set
+    setEdgeLengths(newLengths);
+  }
+  
+  
+  
+  public void stretchFaceTarget(int oppositeBob, double factor) {
+    stretchFaceImpl(oppositeBob, true, factor);
+  }
+  
+  
+  
+  public void stretchFace(int oppositeBob, double factor) {
+    stretchFaceImpl(oppositeBob, false, factor);
+  }
+  
+  
+  private void stretchFaceImpl(int oppositeBob, boolean target, double factor) {
+    if (oppositeBob < 0 || oppositeBob > 3)
+      throw new IllegalArgumentException("oppositeBob " + oppositeBob);
+    int i = (oppositeBob + 1) % 4;
+    int j = (oppositeBob + 2) % 4;
+    int k = (oppositeBob + 3) % 4;
+    
+    TetraEdge a = TetraEdge.forBobs(i, j);
+    TetraEdge b = TetraEdge.forBobs(j, k);
+    TetraEdge c = TetraEdge.forBobs(k, i);
+    
+
+    double[] newLengths = new double[6];
+    for (int index = 6; index-- > 0; )
+      newLengths[index] = lengths[index];
+    
+    if (target) {
+      newLengths[a.index] *= factor;
+      newLengths[b.index] *= factor;
+      newLengths[c.index] *= factor;
+    } else {
+      newLengths[a.index] = getCurrentEdgeLength(a) * factor;
+      newLengths[b.index] = getCurrentEdgeLength(b) * factor;
+      newLengths[c.index] = getCurrentEdgeLength(c) * factor;
+    }
+
+    // finally, validate and set
+    setEdgeLengths(newLengths);
+  }
+  
+  
+  @Override
   public void adjustTethers() {
     
     // Taking the naive approach first.. see if it works
@@ -243,4 +401,80 @@ public class ShapeFuzzyController {
   
   private final static double IGNORABLE_DELTA = 0.005;
 
+  
+  
+  
+  
+  
+//  public void scale(
+  
+  
+  
+  
+  
+  
+  // Typically one-time setup properties..
+
+  public double getMaxCompressiveForce() {
+    return maxCompressiveForce;
+  }
+
+
+
+  public void setMaxCompressiveForce(double maxCompressiveForce) {
+    if (maxCompressiveForce < 0)
+      throw new IllegalArgumentException("maxCompressiveForce " + maxCompressiveForce);
+    this.maxCompressiveForce = maxCompressiveForce;
+  }
+
+
+
+  public double getMaxTensileForce() {
+    return maxTensileForce;
+  }
+
+
+
+  public void setMaxTensileForce(double maxTensileForce) {
+    if (maxTensileForce <= 0)
+      throw new IllegalArgumentException("maxTensileForce " + maxTensileForce);
+    this.maxTensileForce = maxTensileForce;
+  }
+
+
+
+  public double getMinTetherLength() {
+    return minTetherLength;
+  }
+
+
+
+  /**
+   * Defines the distance at which 2 bobs are considered collided.
+   */
+  public void setMinTetherLength(double minTetherLength) {
+    if (minTetherLength <= 0)
+      throw new IllegalArgumentException("minTetherLength " + minTetherLength);
+    this.minTetherLength = minTetherLength;
+  }
+
+
+
+  public int getFuzzyTimeToTarget() {
+    return fuzzyTimeToTarget;
+  }
+
+
+
+  public void setFuzzyTimeToTarget(int fuzzyTimeToTarget) {
+    if (fuzzyTimeToTarget < 1)
+      throw new IllegalArgumentException("fuzzyTimeToTarget " + fuzzyTimeToTarget);
+    this.fuzzyTimeToTarget = fuzzyTimeToTarget;
+  }
+
+  
+  
+  
+  
+  
 }

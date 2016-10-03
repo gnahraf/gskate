@@ -2,12 +2,16 @@ package com.gnahraf.gskate.gen.le;
 
 import static org.junit.Assert.*;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+
 import org.junit.Test;
 
 import com.gnahraf.gskate.gen.le.LonelyEarth;
 import com.gnahraf.gskate.model.Bob;
 import com.gnahraf.gskate.model.Constants;
 import com.gnahraf.gskate.model.Tetra;
+import com.gnahraf.gskate.model.TetraEdge;
 
 public class LonelyEarthTest {
 
@@ -52,12 +56,10 @@ public class LonelyEarthTest {
     System.out.println();
     System.out.println("Tether lengths: ");
     System.out.println();
-    for (int i = 0; i < 3; ++i) {
-      Bob bob = craft.getBob(i);
-      for (int j = i + 1; j < 4; ++j) {
-        double distance = bob.distance(craft.getBob(j));
-        System.out.println("(" + i + "," + j + "): " + distance + " m");
-      }
+    
+    for (TetraEdge edge : TetraEdge.values()) {
+      double distance = craft.getBob(edge.loBob).distance(craft.getBob(edge.hiBob));
+      System.out.println(edge + ": " + FORMAT.format(distance) + " m");
     }
   }
   
@@ -78,14 +80,29 @@ public class LonelyEarthTest {
     double r = Math.sqrt(x*x + y*y + z*z);
 
     System.out.println();
-    System.out.println("R: " + r + "  m (" + (int) (r - Constants.EARTH_RADIUS) + " m above ground)");
-    System.out.println("Position:   (" + x + ", " + y + ", " + z + ")");
-    System.out.println("PE:        " + craft.getPe(system.getPotential()) + " J");
-    System.out.println("KE:        " + craft.getKe() + " J");
-    System.out.println("Energy     " + (craft.getKe() + craft.getPe(system.getPotential())) + " J");
-    System.out.println("CM KE:     " + craft.getCmKe() + " J");
-    System.out.println("CM Energy: " + craft.getCmEnergy(system.getPotential()) + " J");
+    System.out.println("R: " + FORMAT.format(r) + " m (" + FORMAT.format((int) (r - Constants.EARTH_RADIUS)) + " m above ground)");
+    System.out.println("Position:   (" + FORMAT.format(x) + ", " + FORMAT.format(y) + ", " + FORMAT.format(z) + ")");
+    System.out.println("PE:        " + SCI_FORMAT.format(craft.getPe(system.getPotential())) + " J");
+    System.out.println("KE:        " + SCI_FORMAT.format(craft.getKe()) + " J");
+    System.out.println("Energy     " + SCI_FORMAT.format((craft.getKe() + craft.getPe(system.getPotential()))) + " J");
+    System.out.println("CM KE:     " + SCI_FORMAT.format(craft.getCmKe()) + " J");
+    System.out.println("CM Energy: " + SCI_FORMAT.format(craft.getCmEnergy(system.getPotential())) + " J");
   }
+  
+  
+  
+  public static void printTetherForces(LonelyEarth system) {
+    Tetra craft = system.getCraft();
+
+    System.out.println();
+    System.out.println("Tether forces (N) (+/- means push/pull)");
+    for (TetraEdge edge : TetraEdge.values())
+      System.out.println(edge + ": " + FORMAT.format(craft.getTetherByIndex(edge.index)));
+    
+  }
+  
+  public final static DecimalFormat FORMAT = new DecimalFormat("#,###.#");
+  public final static DecimalFormat SCI_FORMAT = new DecimalFormat("0.#####E0");
   
   
   

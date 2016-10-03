@@ -39,9 +39,6 @@ public class Simulation {
   }
   
   
-
-  
-  
   /**
    * Returns the animation time in milliseconds.
    */
@@ -74,6 +71,19 @@ public class Simulation {
     seconds /= 1000;
     craft.animate(potential, seconds, timeResolution);
     time += millis;
+  }
+  
+  
+  public void animateControlledMillis(long millis, double timeResolution, TetherController controller, long controlMillis) {
+    if (controlMillis < 1)
+      throw new IllegalArgumentException("controlMillis " + controlMillis);
+    
+    long controlRuns = millis / controlMillis;
+    for (long countDown = controlRuns; countDown-- > 0; ) {
+      animateMillis(controlMillis, timeResolution);
+      controller.adjustTethers();
+    }
+    animateMillis(millis - controlRuns*controlMillis, timeResolution);
   }
 
 }

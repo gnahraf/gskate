@@ -84,6 +84,13 @@ public class Tetra {
       joules += potential.pe(bobs[i]);
     return joules;
   }
+  
+  
+  
+
+  public double getEnergy(Potential potential) {
+    return getPe(potential) + getKe();
+  }
 
   
   
@@ -139,6 +146,25 @@ public class Tetra {
   
   
   
+  public int getLoBob(Potential potential) {
+    int index = 0;
+    double pe = potential.pe(bobs[index]);
+    for (int i = 1; i < 4; ++i) {
+      double nextPe = potential.pe(bobs[i]);
+      if (nextPe < pe) {
+        pe = nextPe;
+        index = i;
+      }
+    }
+    return index;
+  }
+  
+  
+  
+  
+  
+  
+  
   /**
    * Clears the acceleration vectors of the 4 bobs. Note, you can do as you please with
    * the acceleration vectors. They are really temporary vectors; they don't encapsulate
@@ -152,7 +178,7 @@ public class Tetra {
   
   
   public void animate(Potential potential, double seconds, double timeFineness) {
-    if (seconds < 0 || timeFineness < 0)
+    if (seconds < 0 || timeFineness <= 0)
       throw new IllegalArgumentException(seconds + ", " + timeFineness);
     int runs = (int) (seconds / timeFineness);
     for (int i = 0; i < runs; ++i) {
@@ -230,7 +256,5 @@ public class Tetra {
     for (int i = 0; i < 6; ++i)
       tethers[i] = other.tethers[i];
   }
-  
-  
 
 }

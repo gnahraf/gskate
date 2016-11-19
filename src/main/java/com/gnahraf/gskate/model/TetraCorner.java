@@ -19,28 +19,19 @@ public enum TetraCorner {
   private final static TetraCorner[] CORNERS = TetraCorner.values();
   
   private final int bob;
-  private final int[] adjacentBobs;
   private final TetraEdge[] edges;
   
   private TetraCorner(int bob) {
     this.bob = bob;
-    adjacentBobs = new int[3];
     edges = new TetraEdge[3];
-    int ai = 0;
-    for (int i = 0; i < 4; ++i) {
-      if (i == bob)
-        continue;
-      adjacentBobs[ai] = i;
-      edges[ai] = TetraEdge.forBobs(bob, i);
-      ++ai;
+    for (int i = 0; i < 3; ++i) {
+      int adjacentBob = (bob + i + 1) % 4;
+      edges[i] = TetraEdge.forBobs(bob, adjacentBob);
     }
   }
   
   
   
-  public int adjacentBob(int orderIndex) throws IndexOutOfBoundsException {
-    return adjacentBobs[orderIndex];
-  }
   
   
   public TetraEdge edge(int orderIndex) throws IndexOutOfBoundsException {
@@ -54,7 +45,20 @@ public enum TetraCorner {
   }
   
   
+  public TetraFace oppositeFace() {
+    return TetraFace.forOppositeBob(bob);
+  }
   
+  @Override
+  public String toString() {
+    StringBuilder str = new StringBuilder(16);
+    str.append(name()).append('[').append(bob).append(':');
+    str.append(edge(0).index).append(',');
+    str.append(edge(1).index).append(',');
+    str.append(edge(2).index).append(']');
+    
+    return str.toString();
+  }
   
   public static TetraCorner forBob(int bob) throws IndexOutOfBoundsException {
     return CORNERS[bob];

@@ -14,7 +14,7 @@ import com.gnahraf.gskate.model.Constants;
 import com.gnahraf.gskate.model.Tetra;
 
 /**
- *
+ * Ditching this..
  */
 public class Trial {
   

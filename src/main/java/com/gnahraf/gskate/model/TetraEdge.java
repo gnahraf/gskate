@@ -39,9 +39,9 @@ public enum TetraEdge {
       int t = bobA;
       bobA = bobB;
       bobB = t;
-    } else if (bobA == bobB) {
+    } else if (bobA == bobB)
       throw new IllegalArgumentException("bobA " + bobA + ", bobB " + bobB);
-    }
+    
     
     if (bobA < 0 || bobB > 5) {
       // restore arg order for better debugging..

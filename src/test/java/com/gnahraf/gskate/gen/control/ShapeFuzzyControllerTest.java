@@ -169,7 +169,7 @@ public class ShapeFuzzyControllerTest {
     
     for (int actionCountDown = actions; actionCountDown-- > 0; ) {
       system.animateControlledMillis(millisAcrossAction, constraints.timeFineness, controller, controlMillis);
-      controller.stretchCornerTarget(corner, expansionFactor);
+      controller.getShape().stretchCorner(corner, expansionFactor);
       if (actionCountDown % 5 == 0)
         printInterim(initEnergy, initCmEnergy, system);
     }
@@ -179,7 +179,7 @@ public class ShapeFuzzyControllerTest {
     
     for (int actionCountDown = actions; actionCountDown-- > 0; ) {
       system.animateControlledMillis(millisAcrossAction, constraints.timeFineness, controller, controlMillis);
-      controller.stretchCornerTarget(corner, compressionFactor);
+      controller.getShape().stretchCorner(corner, compressionFactor);
       if (actionCountDown % 5 == 0)
         printInterim(initEnergy, initCmEnergy, system);
     }
@@ -235,7 +235,7 @@ public class ShapeFuzzyControllerTest {
     
     for (int actionCountDown = actions; actionCountDown-- > 0; ) {
       system.animateControlledMillis(millisAcrossAction, constraints.timeFineness, controller, controlMillis);
-      controller.stretchCornerTarget(corner, cornerExpansionFactor);
+      controller.getShape().stretchCorner(corner, cornerExpansionFactor);
       if (actionCountDown % 5 == 0)
         printInterim(initEnergy, initCmEnergy, system);
     }
@@ -243,7 +243,7 @@ public class ShapeFuzzyControllerTest {
     // then expand the opposite face the same way..
     for (int actionCountDown = actions; actionCountDown-- > 0; ) {
       system.animateControlledMillis(millisAcrossAction, constraints.timeFineness, controller, controlMillis);
-      controller.stretchFaceTarget(corner.bob(), faceExpansionFactor);
+      controller.getShape().stretchFace(corner.oppositeFace(), faceExpansionFactor);
       if (actionCountDown % 5 == 0)
         printInterim(initEnergy, initCmEnergy, system);
     }
@@ -251,17 +251,17 @@ public class ShapeFuzzyControllerTest {
     system.animateControlledMillis((int) (periodMillis * 3 / 8), constraints.timeFineness, controller, controlMillis);
     printReport(initEnergy, initCmEnergy, system);
     
-    for (int actionCountDown = actions; actionCountDown-- > 0; ) {
+    for (int actionCountDown = actions / 2; actionCountDown-- > 0; ) {
       system.animateControlledMillis(millisAcrossAction, constraints.timeFineness, controller, controlMillis);
-      controller.stretchCornerTarget(corner, cornerCompressionFactor);
+      controller.getShape().stretchCorner(corner, cornerCompressionFactor);
       if (actionCountDown % 5 == 0)
         printInterim(initEnergy, initCmEnergy, system);
     }
     
 
-    for (int actionCountDown = actions; actionCountDown-- > 0; ) {
+    for (int actionCountDown = actions / 2; actionCountDown-- > 0; ) {
       system.animateControlledMillis(millisAcrossAction, constraints.timeFineness, controller, controlMillis);
-      controller.stretchFaceTarget(corner.bob(), faceCompressionFactor);
+      controller.getShape().stretchFace(corner.oppositeFace(), faceCompressionFactor);
       if (actionCountDown % 5 == 0)
         printInterim(initEnergy, initCmEnergy, system);
     }

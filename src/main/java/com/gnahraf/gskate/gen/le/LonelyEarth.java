@@ -28,7 +28,7 @@ public class LonelyEarth extends Simulation {
     public double maxTensileForce = 500;
     public double maxCompressiveForce = 1;
     
-    public double initTetherValue = 0.0001;
+    public double initTetherValue = 0;
     public double timeFineness = 6.7e-5;
     
     public Constraints clone() {
@@ -37,6 +37,38 @@ public class LonelyEarth extends Simulation {
       } catch (CloneNotSupportedException wtf) {
         throw new RuntimeException(wtf);
       }
+    }
+    
+    public boolean isValid() {
+      return
+          initTetherLength > minTetherLength &&
+          minTetherLength < maxTetherLength &&
+          minTetherLength > 1 &&
+          minKmsAboveGround > 50 &&
+          initKmsAboveGround > minKmsAboveGround &&
+          maxTensileForce > 0 &&
+          maxCompressiveForce > 0 &&
+          initTetherValue < maxCompressiveForce &&
+          initTetherValue > -maxTensileForce &&
+          timeFineness > 0 &&
+          timeFineness < 0.1;
+    }
+    
+    
+    @Override
+    public String toString() {
+      return
+          "Constraints[" +
+          initTetherLength + "," +
+          minTetherLength + "," +
+          maxTetherLength + "," +
+          minKmsAboveGround + "," +
+          initKmsAboveGround + "," +
+          maxTensileForce + "," +
+          maxCompressiveForce + "," +
+          initTetherValue + "," +
+          timeFineness +
+          "]";
     }
     
   }

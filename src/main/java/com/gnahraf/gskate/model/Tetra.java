@@ -161,7 +161,16 @@ public class Tetra {
   
   
   
-  
+  public TetraShape getShape() {
+    double[] lengths = new double[6];
+    for (int index = 0; index < 6; ++index) {
+      TetraEdge edge = TetraEdge.forIndex(index);
+      lengths[index] = bobs[edge.loBob].distance( bobs[edge.hiBob] );
+    }
+    TetraShape shape = new TetraShape();
+    shape.setLengths(lengths);
+    return shape;
+  }
   
   
   

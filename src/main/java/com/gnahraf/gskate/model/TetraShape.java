@@ -6,7 +6,6 @@ package com.gnahraf.gskate.model;
 
 import static com.gnahraf.util.list.DoubleArrayList.asList;
 
-import com.gnahraf.math.ArrayMatrix;
 import com.gnahraf.math.DetMatrix;
 
 /**
@@ -110,6 +109,14 @@ public class TetraShape {
   }
   
   
+  public void addLengths(double[] deltas) {
+    double[] newLengths = new double[6];
+    for (int index = 6; index-- > 0; )
+      newLengths[index] = lengths[index] + deltas[index];
+    setLengths(newLengths);
+  }
+  
+  
   
   public void setLengths(double equiLength) {
     if (equiLength <= 0)
@@ -170,6 +177,38 @@ public class TetraShape {
     return Math.sqrt(cayleyMenger.determinant() / 288);
   }
   
+  
+  
+  @Override
+  public final boolean equals(Object obj) {
+    if (obj == this)
+      return true;
+    return obj instanceof TetraShape && equals((TetraShape) obj);
+  }
+  
+  
+  
+  public final boolean equals(TetraShape other) {
+    if (other == null)
+      return false;
+    else if (other == this)
+      return true;
+    int index = 6;
+    while (index-- > 0 && lengths[index] == other.lengths[index]);
+    return index == -1;
+  }
+  
+  
+  
+  public final int hashCode() {
+    double sum = 97 * lengths[0];
+    sum += 101 * lengths[1];
+    sum += 103 * lengths[2];
+    sum += 105 * lengths[3];
+    sum += 107 * lengths[4];
+    sum += 109 * lengths[5];
+    return Double.hashCode(sum);
+  }
   
   
   

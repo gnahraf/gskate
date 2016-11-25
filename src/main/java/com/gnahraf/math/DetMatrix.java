@@ -63,6 +63,21 @@ public class DetMatrix extends ArrayMatrix {
   }
   
   
+  @Override
+  public void copyFrom(ArrayMatrix copy) {
+    super.copyFrom(copy);
+    dirty = true;
+  }
+  
+
+  public void copyFrom(DetMatrix copy) {
+    super.copyFrom(copy);
+    dirty = copy.dirty;
+    cachedDet = copy.cachedDet;
+  }
+  
+  
+
   public String toDebugString() {
     StringBuilder string = new StringBuilder(16 * columns() * rows());
     String pad = "  ";

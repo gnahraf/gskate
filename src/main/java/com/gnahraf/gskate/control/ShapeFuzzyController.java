@@ -5,11 +5,9 @@ package com.gnahraf.gskate.control;
 
 
 import com.gnahraf.gskate.model.Bob;
-import com.gnahraf.gskate.model.Potential;
 import com.gnahraf.gskate.model.Simulation;
 import com.gnahraf.gskate.model.TetherController;
 import com.gnahraf.gskate.model.Tetra;
-import com.gnahraf.gskate.model.TetraCorner;
 import com.gnahraf.gskate.model.TetraEdge;
 import com.gnahraf.gskate.model.TetraShape;
 
@@ -25,22 +23,12 @@ import com.gnahraf.gskate.model.TetraShape;
  */
 public class ShapeFuzzyController extends TetherController {
   
-  
-  
-//  private final static ShapeListener NULL_LISTENER =
-//      new ShapeListener() {
-//        public void shapeChanged(TetraShape shape) {  }
-//      };
-  
+
       
   /**
    * The target shape.
    */
   private final MonitoredShape shape = new MonitoredShape();
-  /**
-   * Target lengths of the 6 edges of the tetra. So collectively, these define the size and shape.
-   */
-//  private final double[] lengths = new double[6];
   
   /**
    * The relative speeds along the edges. This records how fast the edges were
@@ -87,17 +75,7 @@ public class ShapeFuzzyController extends TetherController {
       throw new IllegalArgumentException("null system");
   }
   
-//  /**
-//   * 
-//   */
-//  public ShapeFuzzyController(Simulation system, ShapeListener listener) {
-//    this.system = system;
-//    this.changeListener = listener == null ? NULL_LISTENER : listener;
-//    
-//    if (system == null)
-//      throw new IllegalArgumentException("null system");
-//  }
-  
+
   
   
   public void setShapeListener(ShapeListener listener) {
@@ -162,87 +140,6 @@ public class ShapeFuzzyController extends TetherController {
   }
   
   
-//  private void setEdgeLengthImpl(int index, double newLength) {
-////    boolean changed = lengths[index] != newLength;
-////    lengths[index] = newLength;
-////    if (changed)
-////      changeListener.shapeChanged(index, newLength);
-//  }
-
-
-
-//  public void stretchCornerTarget(TetraCorner corner, double factor) {
-//    stretchCornerImpl(corner, true, factor);
-//  }
-  
-  
-//  public void stretchCorner(TetraCorner corner, double factor) {
-//    stretchCornerImpl(corner, false, factor);
-//  }
-  
-//  private void stretchCornerImpl(TetraCorner corner, boolean target, double factor) {
-//    double[] newLengths = new double[6];
-//    for (int index = 6; index-- > 0; )
-//      newLengths[index] = lengths[index];
-//    
-//    if (target) {
-//      for (int oi = 3; oi-- > 0; ) {
-//        TetraEdge edge = corner.edge(oi);
-//        newLengths[edge.index] *= factor;
-//      }
-//    } else {
-//      for (int oi = 3; oi-- > 0; ) {
-//        TetraEdge edge = corner.edge(oi);
-//        newLengths[edge.index] = getCurrentEdgeLength(edge) * factor;
-//      }
-//    }
-//    // finally, validate and set
-//    setEdgeLengths(newLengths);
-//  }
-  
-  
-  
-//  public void stretchFaceTarget(int oppositeBob, double factor) {
-//    stretchFaceImpl(oppositeBob, true, factor);
-//  }
-//  
-//  
-//  
-//  public void stretchFace(int oppositeBob, double factor) {
-//    stretchFaceImpl(oppositeBob, false, factor);
-//  }
-  
-  
-//  private void stretchFaceImpl(int oppositeBob, boolean target, double factor) {
-//    if (oppositeBob < 0 || oppositeBob > 3)
-//      throw new IllegalArgumentException("oppositeBob " + oppositeBob);
-//    int i = (oppositeBob + 1) % 4;
-//    int j = (oppositeBob + 2) % 4;
-//    int k = (oppositeBob + 3) % 4;
-//    
-//    TetraEdge a = TetraEdge.forBobs(i, j);
-//    TetraEdge b = TetraEdge.forBobs(j, k);
-//    TetraEdge c = TetraEdge.forBobs(k, i);
-//    
-//
-//    double[] newLengths = new double[6];
-//    for (int index = 6; index-- > 0; )
-//      newLengths[index] = lengths[index];
-//    
-//    if (target) {
-//      newLengths[a.index] *= factor;
-//      newLengths[b.index] *= factor;
-//      newLengths[c.index] *= factor;
-//    } else {
-//      newLengths[a.index] = getCurrentEdgeLength(a) * factor;
-//      newLengths[b.index] = getCurrentEdgeLength(b) * factor;
-//      newLengths[c.index] = getCurrentEdgeLength(c) * factor;
-//    }
-//
-//    // finally, validate and set
-//    setEdgeLengths(newLengths);
-//  }
-  
   
   @Override
   public void adjustTethers() {
@@ -257,8 +154,6 @@ public class ShapeFuzzyController extends TetherController {
     //
     // But like the class name suggests, we're going for fuzzy..
     
-    // Gonna ignore acceleration
-//    craft.updateForces(system.getPotential());
     
     if (system.getTime() <= lrTime) {
       if (system.getTime() == lrTime)
@@ -292,7 +187,7 @@ public class ShapeFuzzyController extends TetherController {
       throw new IllegalStateException("bobs collided " + edge + "; distance " + edgeLen);
     
     
-    // take the dot product of the [relative] velocity vectory
+    // take the dot product of the [relative] velocity vector
     // with the [normalized] relative position vector..
     // this gives us the relative speed of the higher [index] bob relative to
     // the lower bob. (So negative speed means edge length is contracting)
@@ -318,7 +213,7 @@ public class ShapeFuzzyController extends TetherController {
       throw new IllegalStateException("bobs collided " + edge + "; distance " + edgeLen);
     
     
-    // take the dot product of the [relative] velocity vectory
+    // take the dot product of the [relative] velocity vector
     // with the [normalized] relative position vector..
     // this gives us the relative speed of the higher [index] bob relative to
     // the lower bob. (So negative speed means edge length is contracting)

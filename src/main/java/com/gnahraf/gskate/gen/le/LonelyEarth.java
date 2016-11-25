@@ -3,11 +3,11 @@
  */
 package com.gnahraf.gskate.gen.le;
 
+
 import com.gnahraf.gskate.model.Bob;
 import com.gnahraf.gskate.model.Constants;
 import com.gnahraf.gskate.model.Simulation;
 import com.gnahraf.gskate.model.SphericalBodyPotential;
-import com.gnahraf.gskate.model.Tetra;
 
 /**
  * A geo-centric simulation. The earth does not move about anything.

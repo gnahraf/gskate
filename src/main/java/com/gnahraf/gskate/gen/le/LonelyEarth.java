@@ -16,10 +16,15 @@ import com.gnahraf.gskate.model.SphericalBodyPotential;
 public class LonelyEarth extends Simulation {
   
   
+  /**
+   * Configuration. Everything in standard metric units unless otherwise
+   * specified (e.g. kilometers instead of meters).
+   */
   public static class Constraints implements Cloneable {
     
     public double initTetherLength = 100;
-    public double maxTetherLength = 1e6; // 1000km
+    public double steadyStateTetherLength = 250;
+    public double maxTetherLength = 100000; // 100km
     public double minTetherLength = 50;
     
     public double minKmsAboveGround = 300;
@@ -42,8 +47,14 @@ public class LonelyEarth extends Simulation {
     public boolean isValid() {
       return
           initTetherLength > minTetherLength &&
+          initTetherLength < maxTetherLength &&
+
+          steadyStateTetherLength > minTetherLength &&
+          steadyStateTetherLength < maxTetherLength &&
+          
           minTetherLength < maxTetherLength &&
           minTetherLength > 1 &&
+          
           minKmsAboveGround > 50 &&
           initKmsAboveGround > minKmsAboveGround &&
           maxTensileForce > 0 &&
@@ -60,6 +71,7 @@ public class LonelyEarth extends Simulation {
       return
           "Constraints[" +
           initTetherLength + "," +
+          steadyStateTetherLength + "," +
           minTetherLength + "," +
           maxTetherLength + "," +
           minKmsAboveGround + "," +

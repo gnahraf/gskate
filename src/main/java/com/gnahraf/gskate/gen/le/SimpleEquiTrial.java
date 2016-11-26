@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.gnahraf.gskate.control.ShapeFuzzyController;
 import com.gnahraf.gskate.control.ShapeMetaController;
+import com.gnahraf.gskate.model.Bob;
 import com.gnahraf.gskate.model.Simulation;
 import com.gnahraf.gskate.model.TetraShape;
 import com.gnahraf.util.data.DoubleDouble;
@@ -124,11 +125,13 @@ public class SimpleEquiTrial {
   
   private final double initEnergy;
   private final double initCmEnergy;
+  private final double initRadius;
   
   private int controlMillis = 40;
   
   private int controlStepsPerProfilePoint = 1000;
   
+  private RuntimeException error;
   
 
   /**
@@ -139,7 +142,7 @@ public class SimpleEquiTrial {
     if (!config.isValid())
       throw new IllegalArgumentException(config.toString());
     this.profile = profile;
-    if (profile.getPoints().size() < 4)
+    if (profile.getPoints().size() < 3)
       throw new IllegalArgumentException("profile size " + profile.getPoints().size());
     this.system = new LonelyEarth(config);
     this.fuzzyControl = new ShapeFuzzyController(system);
@@ -151,30 +154,41 @@ public class SimpleEquiTrial {
     periodMillis = (int) (1000 * estimateInitPeriod());
     initEnergy = getEnergy();
     initCmEnergy = getCmEnergy();
+    initRadius = system.getCraft().newCmBob().distance(0, 0, 0);
   }
   
   
+  public boolean failed() {
+    return error != null;
+  }
   
+  public RuntimeException getException() {
+    return error;
+  }
   
   public void runOneOrbit() {
 
     TetraShape targetShape = new TetraShape();
     int trialTime = 0;
     
-    for (DoubleDouble point : profile.getPoints()) {
+    try {
+      for (DoubleDouble point : profile.getPoints()) {
+        
+        int time = (int) (point.x() * periodMillis) - trialTime;
+        double edgeLength = point.y() * config.maxTetherLength;
+        
+        targetShape.setLengths(edgeLength);
+        controller.setTargetShape(targetShape, time, controlStepsPerProfilePoint);
+        system.animateControlledMillis(time, config.timeFineness, controller, controlMillis);
+        trialTime += time;
+      }
       
-      int time = (int) (point.x() * periodMillis) - trialTime;
-      double edgeLength = point.y() * config.maxTetherLength;
-      
-      targetShape.setLengths(edgeLength);
-      controller.setTargetShape(targetShape, time, controlStepsPerProfilePoint);
-      system.animateControlledMillis(time, config.timeFineness, controller, controlMillis);
-      trialTime += time;
+      int millisRemaining = periodMillis - trialTime;
+      assert millisRemaining >= 0;
+      system.animateControlledMillis(millisRemaining, config.timeFineness, controller, controlMillis);
+    } catch (RuntimeException rx) {
+      error = rx;
     }
-    
-    int millisRemaining = periodMillis - trialTime;
-    assert millisRemaining >= 0;
-    system.animateControlledMillis(millisRemaining, config.timeFineness, controller, controlMillis);
   }
   
   
@@ -216,6 +230,16 @@ public class SimpleEquiTrial {
   }
   
   
+  public double getRotationalEnergy() {
+    return getEnergy() - getCmEnergy();
+  }
+  
+  
+  public double getRotationalEnergyGain() {
+    return getEnergyGain() - getCmEnergyGain();
+  }
+  
+  
   public double getEnergyGain() {
     return getEnergy() - initEnergy;
   }
@@ -229,12 +253,18 @@ public class SimpleEquiTrial {
   public Simulation getSystem() {
     return system;
   }
+  
+  
+  public double getRadiusGain() {
+    return system.getCraft().newCmBob().distance(0, 0, 0) - initRadius;
+  }
 
 
   private double estimateInitPeriod() {
-    double r = system.getCraft().getBob(0).distance(0, 0, 0);
+    Bob cm = system.getCraft().newCmBob();
+    double r = cm.distance(0, 0, 0);
     double circum = 2 * r * Math.PI;
-    double period = circum / system.getCraft().getBob(0).getV();
+    double period = circum / cm.getV();
     return period;
   }
   

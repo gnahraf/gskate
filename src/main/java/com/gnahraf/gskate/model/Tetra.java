@@ -34,6 +34,34 @@ public class Tetra {
   
   
 
+  /**
+   * Returns a bob representing the center of mass, the group speed and the group
+   * acceleration.
+   */
+  public Bob newCmBob() {
+    Bob bob = new Bob();
+    for (int i = 0; i < 4; ++i)
+      bob.add(bobs[i]);
+    
+    double i, j, k;
+    
+    i = bob.getX() / 4;
+    j = bob.getY() / 4;
+    k = bob.getZ() / 4;
+    bob.setPosition(i, j, k);
+
+    i = bob.getVx() / 4;
+    j = bob.getVy() / 4;
+    k = bob.getVz() / 4;
+    bob.setVelocity(i, j, k);
+    
+    i = bob.getAx() / 4;
+    j = bob.getAy() / 4;
+    k = bob.getAz() / 4;
+    bob.setAcceleration(i, j, k);
+    
+    return bob;
+  }
   
   
   public double getKe() {

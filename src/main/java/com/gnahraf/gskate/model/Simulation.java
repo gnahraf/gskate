@@ -39,6 +39,19 @@ public class Simulation {
   }
   
   
+  public Simulation(Simulation copy) {
+    this(copy.potential.clone());
+    this.craft.copyFrom(copy.craft);
+    this.time = copy.time;
+  }
+  
+  
+  @Override
+  public Simulation clone() {
+    return new Simulation(this);
+  }
+  
+  
   /**
    * Returns the animation time in milliseconds.
    */

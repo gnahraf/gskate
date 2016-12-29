@@ -22,6 +22,10 @@ public abstract class Potential {
    * Returns the potential energy of the given bob, that is, Joules per kg.
    */
   public abstract double pe(Bob bob);
+  
+  
+  
+  public abstract Potential clone();
 
 
 

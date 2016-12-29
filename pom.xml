@@ -38,8 +38,8 @@
         <configuration>
           <programs>
             <program>
-              <mainClass>com.gnahraf.gskate.gen.le.SimpleEquiTrialEnsemble</mainClass>
-              <id>tetra-equi</id>
+              <mainClass>com.gnahraf.gskate.gen.le.reg.RegularShapeTrialEnsemble</mainClass>
+              <id>regorbit</id>
             </program>
           </programs>
         </configuration>

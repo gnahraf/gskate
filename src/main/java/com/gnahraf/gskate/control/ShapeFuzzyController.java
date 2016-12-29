@@ -75,6 +75,20 @@ public class ShapeFuzzyController extends TetherController {
       throw new IllegalArgumentException("null system");
   }
   
+  
+  
+  
+  public void copyStateFrom(ShapeFuzzyController copy) {
+    this.shape.copyFrom(copy.shape);
+    for (int index = 6; index-- > 0; )
+      this.lengthRates[index] = copy.lengthRates[index];
+    this.lrTime = copy.lrTime;
+    this.fuzzyTimeToTarget = copy.fuzzyTimeToTarget;
+    this.maxCompressiveForce = copy.maxCompressiveForce;
+    this.maxTensileForce = copy.maxTensileForce;
+    this.minTetherLength = copy.minTetherLength;
+  }
+  
 
   
   

@@ -4,6 +4,7 @@
 package com.gnahraf.gskate.control;
 
 
+import com.gnahraf.gskate.model.Simulation;
 import com.gnahraf.gskate.model.TetherController;
 import com.gnahraf.gskate.model.TetraShape;
 
@@ -29,6 +30,26 @@ public class ShapeMetaController extends TetherController {
     this.fuzzyControl = controller;
     if (controller == null)
       throw new IllegalArgumentException("null");
+  }
+  
+  
+  
+  public ShapeMetaController newSnapshot(Simulation system) {
+    // sanity check (but really, there are more checks to do..)
+    if (system.getTime() != fuzzyControl.getSystem().getTime())
+      throw new IllegalArgumentException(
+          "System time mismatch " + system.getTime() + " vs. " + fuzzyControl.getSystem().getTime());
+    
+    ShapeFuzzyController fuzz = new ShapeFuzzyController(system);
+    fuzz.copyStateFrom(fuzzyControl);
+    ShapeMetaController snap = new ShapeMetaController(fuzz);
+    snap.shape.copyFrom(shape);
+    for (int index = 6; index-- > 0; )
+      snap.lengthDeltasPerStep[index] = lengthDeltasPerStep[index];
+    snap.millisPerStep = millisPerStep;
+    snap.stepsRemaining = stepsRemaining;
+    snap.nextSystemDecisionTime = nextSystemDecisionTime;
+    return snap;
   }
   
   

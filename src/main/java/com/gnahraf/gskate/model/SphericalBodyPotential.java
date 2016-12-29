@@ -29,6 +29,16 @@ public class SphericalBodyPotential extends Potential {
   
   public SphericalBodyPotential(double mass) {
     this.g = mass * Constants.G;
+    if (mass <= 0)
+      throw new IllegalArgumentException("mass " + mass);
+  }
+  
+  
+  public SphericalBodyPotential(SphericalBodyPotential copy) {
+    this.g = copy.g;
+    this.x = copy.x;
+    this.y = copy.y;
+    this.z = copy.z;
   }
   
 
@@ -64,6 +74,12 @@ public class SphericalBodyPotential extends Potential {
   
   public double getG() {
     return g;
+  }
+
+
+  @Override
+  public SphericalBodyPotential clone() {
+    return new SphericalBodyPotential(this);
   }
 
 }

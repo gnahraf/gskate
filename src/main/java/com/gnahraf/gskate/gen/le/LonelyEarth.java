@@ -67,6 +67,46 @@ public class LonelyEarth extends Simulation {
     
     
     @Override
+    public int hashCode() {
+      int hash = Double.hashCode(initTetherValue);
+      hash ^= Double.hashCode(-7 * steadyStateTetherLength);
+      hash ^= Double.hashCode(maxTetherLength);
+      hash ^= Double.hashCode(minTetherLength);
+      hash ^= Double.hashCode(minKmsAboveGround);
+      hash ^= Double.hashCode(-initKmsAboveGround);
+      
+      hash ^= Double.hashCode(-maxTensileForce);
+      hash ^= Double.hashCode(maxCompressiveForce);
+      hash ^= Double.hashCode(initTetherValue + .001);
+      hash ^= Double.hashCode(timeFineness);
+      return hash;
+    }
+    
+    
+    @Override
+    public boolean equals(Object o) {
+      if (this == o)
+        return true;
+      else if (o instanceof Constraints) {
+        Constraints other = (Constraints) o;
+        return
+            initTetherLength == other.initTetherLength &&
+            steadyStateTetherLength == other.steadyStateTetherLength &&
+            maxTetherLength == other.maxTetherLength &&
+            minTetherLength == other.minTetherLength &&
+            initKmsAboveGround == other.initKmsAboveGround &&
+            maxTensileForce == other.maxTensileForce &&
+            maxCompressiveForce == other.maxCompressiveForce &&
+            initTetherValue == other.initTetherValue &&
+            timeFineness == other.timeFineness;
+      } else
+        return false;
+    }
+    
+    
+    
+    
+    @Override
     public String toString() {
       return
           "Constraints[" +

@@ -1,7 +1,7 @@
 /*
  * Copyright 2016 Babak Farhang
  */
-package com.gnahraf.gskate.gen;
+package com.gnahraf.gskate.gen.io;
 
 
 import java.io.EOFException;

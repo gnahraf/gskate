@@ -3,7 +3,7 @@
  */
 package com.gnahraf.gskate.control;
 
-import com.gnahraf.gskate.gen.TetherHistory;
+import com.gnahraf.gskate.gen.io.TetherHistory;
 import com.gnahraf.gskate.model.Simulation;
 import com.gnahraf.gskate.model.TetraShape;
 

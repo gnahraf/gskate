@@ -8,6 +8,7 @@ import com.gnahraf.gskate.model.Bob;
 import com.gnahraf.gskate.model.Simulation;
 import com.gnahraf.gskate.model.TetherController;
 import com.gnahraf.gskate.model.Tetra;
+import com.gnahraf.gskate.model.TetraCorner;
 import com.gnahraf.gskate.model.TetraEdge;
 import com.gnahraf.gskate.model.TetraShape;
 
@@ -180,9 +181,69 @@ public class ShapeFuzzyController extends TetherController {
     for (int i = 0; i < 6; ++i)
       adjustTether(i, work);
     
+    doCollisionAvoidance();
+    
     lrTime = system.getTime();
   }
   
+  
+  private void doCollisionAvoidance() {
+    
+    Tetra craft = system.getCraft();
+    int maxCompressedCount = 0;
+    int maxTetherIndex = -1;
+    for (int i = 0; i < 6; ++i) {
+      if (craft.getTetherByIndex(i) >= maxCompressiveForce) {
+        ++maxCompressedCount;
+        maxTetherIndex = i;
+      }
+    }
+    
+    if (maxCompressedCount == 1) {
+      TetraEdge edge = TetraEdge.forIndex(maxTetherIndex);
+      TetraCorner a = TetraCorner.forBob(edge.loBob);
+      TetraCorner b = TetraCorner.forBob(edge.hiBob);
+      
+      TetraEdge[] adjacentEdges = new TetraEdge[4];
+      {
+        int i = 0;
+        for (int k = 0; k < 3; ++k) {
+          TetraEdge adjacent = a.edge(k);
+          if (adjacent != edge)
+            adjacentEdges[i++] = adjacent;
+        }
+        if (i != 2)
+          throw new RuntimeException("Assertion failed. i " + i + "; expected 2");
+        
+
+        for (int k = 0; k < 3; ++k) {
+          TetraEdge adjacent = b.edge(k);
+          if (adjacent != edge)
+            adjacentEdges[i++] = adjacent;
+        }
+
+        if (i != 4)
+          throw new RuntimeException("Assertion failed. i " + i + "; expected 4");
+      }
+      
+      // if any of the adjacent tethers are compressive, we'll just bail..
+      for (int i = 0; i < 4; ++i) {
+        if (craft.getTetherByIndex(adjacentEdges[i].index) >= 0)
+          return;
+      }
+      
+      for (int i = 0; i < 4; ++i) {
+        int index = adjacentEdges[i].index;
+        double biased = Math.max(-maxTensileForce, craft.getTetherByIndex(index) * collisionAvoidanceCounterBias);
+        craft.setTetherByIndex(index, biased);
+      }
+      
+    }
+    
+  }
+  
+  
+  private double collisionAvoidanceCounterBias = 1.035;
   
   
   private double getTetherLengthRate(int tid, Bob work) {
@@ -268,14 +329,19 @@ public class ShapeFuzzyController extends TetherController {
     double deltaForce = fuzzyDeltaForce(ratio);
     
     tetherForce += deltaSign * deltaForce;
-    if (tetherForce < -maxTensileForce)
+    if (tetherForce < -maxTensileForce) {
+      if (tetherForce < -TENSILE_GIVEUP_FACTOR * maxTensileForce)
+        throw new IllegalStateException(
+            "Required tensile force " + -tetherForce + " N > " + TENSILE_GIVEUP_FACTOR + " * " + maxTensileForce);
       tetherForce = -maxTensileForce;
-    else if (tetherForce > maxCompressiveForce)
+    } else if (tetherForce > maxCompressiveForce)
       tetherForce = maxCompressiveForce;
     
     craft.setTetherByIndex(tid, tetherForce);
   }
   
+  
+  private final static double TENSILE_GIVEUP_FACTOR = 1.2;
   
   
   private double fuzzyDeltaForce(double ratio) {

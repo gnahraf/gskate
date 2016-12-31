@@ -1,7 +1,7 @@
 /*
  * Copyright 2016 Babak Farhang
  */
-package com.gnahraf.gskate.gen;
+package com.gnahraf.gskate.gen.io;
 
 
 import static org.junit.Assert.*;
@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
+import com.gnahraf.gskate.gen.io.TetraSerializer;
 import com.gnahraf.gskate.model.Bob;
 import com.gnahraf.gskate.model.Tetra;
 

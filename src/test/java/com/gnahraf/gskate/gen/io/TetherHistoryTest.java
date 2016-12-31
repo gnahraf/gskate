@@ -1,7 +1,7 @@
 /*
  * Copyright 2016 Babak Farhang
  */
-package com.gnahraf.gskate.gen;
+package com.gnahraf.gskate.gen.io;
 
 
 import static org.junit.Assert.*;
@@ -11,6 +11,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import org.junit.Test;
+
+import com.gnahraf.gskate.gen.io.TetherHistory;
 
 /**
  *

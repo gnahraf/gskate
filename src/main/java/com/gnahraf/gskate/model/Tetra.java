@@ -3,6 +3,8 @@
  */
 package com.gnahraf.gskate.model;
 
+import java.util.Arrays;
+
 /**
  * A 4 kg craft consisting of 4 mutually tethered bobs. We assume the
  * tethers haven negligible mass.
@@ -152,6 +154,8 @@ public class Tetra {
   public void setTetherByIndex(int index, double tether) throws IndexOutOfBoundsException {
     tethers[index] = tether;
   }
+  
+  
   
   
   /**

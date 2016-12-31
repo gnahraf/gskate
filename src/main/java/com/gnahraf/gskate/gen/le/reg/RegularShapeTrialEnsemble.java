@@ -13,6 +13,8 @@ import java.util.List;
 import com.gnahraf.gskate.gen.le.LonelyEarth;
 import com.gnahraf.gskate.gen.le.SimpleEquiTrial;
 import com.gnahraf.gskate.model.Tetra;
+import com.gnahraf.gskate.model.TetraEdge;
+import com.gnahraf.gskate.model.TetraShape;
 import com.gnahraf.util.data.NormPoint;
 import com.gnahraf.util.tree.DecisionTreeProcessor;
 import com.gnahraf.util.tree.RegionProgression;
@@ -114,14 +116,14 @@ public class RegularShapeTrialEnsemble {
   /**
    * 
    */
-  public RegularShapeTrialEnsemble(LonelyEarth.Constraints constraints, int regions) {
+  public RegularShapeTrialEnsemble(LonelyEarth.Constraints constraints, int regions, int minRegionGap) {
     this.constraints = constraints;
     this.scaledMin = constraints.steadyStateTetherLength / constraints.maxTetherLength;
     this.regions = regions;
     if (regions < 3)
       throw new IllegalArgumentException("regions " + regions);
     this.trials = new ArrayList<RegularShapeTrial>(1024);
-    this.processor = new TrialProcessor();
+    this.processor = new TrialProcessor(minRegionGap);
   }
   
   
@@ -151,23 +153,38 @@ public class RegularShapeTrialEnsemble {
     System.out.println();
     System.out.println("\tCM  energy gain: " + FORMAT.format(trial.getCmEnergyGain()) + " J");
     System.out.println("\tRot energy gain: " + FORMAT.format(trial.getRotationalEnergyGain()) + " J");
+    System.out.println("\tOrbital radius gain: " + FORMAT.format(trial.getRadiusGain()) + " m");
+    System.out.println();
     
-    double minTetherForce, maxTetherForce;
+
+    System.out.println("\tEdge\t\tLength (m)\tForce (N)  (+/- : push/pull)");
     {
+
       Tetra craft = trial.getSystem().getCraft();
-      int index = 5;
-      minTetherForce = maxTetherForce = craft.getTetherByIndex(index);
-      while (index-- > 0) {
-        double tetherForce = craft.getTetherByIndex(index);
-        if (tetherForce < minTetherForce)
-          minTetherForce = tetherForce;
-        else if (tetherForce > maxTetherForce)
-          maxTetherForce = tetherForce;
+      TetraShape shape = craft.getShape();
+      for (TetraEdge edge : TetraEdge.values()) {
+        System.out.println("\t" + edge + "\t" + FORMAT.format(shape.length(edge.index)) + "   \t" + FORMAT.format(craft.getTetherByIndex(edge.index)));
       }
     }
     
-    System.out.println("\tTether  force range: [" + FORMAT.format(minTetherForce) + ", " + FORMAT.format(maxTetherForce) + "] N");
-    System.out.println("\tOrbital radius gain: " + FORMAT.format(trial.getRadiusGain()) + " m");
+//    double minTetherForce, maxTetherForce;
+//    {
+//      Tetra craft = trial.getSystem().getCraft();
+//      int index = 5;
+//      minTetherForce = maxTetherForce = craft.getTetherByIndex(index);
+//      while (index-- > 0) {
+//        double tetherForce = craft.getTetherByIndex(index);
+//        if (tetherForce < minTetherForce)
+//          minTetherForce = tetherForce;
+//        else if (tetherForce > maxTetherForce)
+//          maxTetherForce = tetherForce;
+//      }
+//    }
+    
+    
+    
+    
+//    System.out.println("\tTether  force range: [" + FORMAT.format(minTetherForce) + ", " + FORMAT.format(maxTetherForce) + "] N");
     System.out.println();
   }
   
@@ -219,11 +236,16 @@ public class RegularShapeTrialEnsemble {
     
     private final double normalizedRegionDuration = 1.0 / regions;
     
+    private final int minRegionGap;
+    
 
-    public TrialProcessor() {
+    public TrialProcessor(int minRegionGap) {
       super(new RegionProgression(regions, 3));
       trialProgress.push(new RegularShapeTrial(constraints));
+      this.minRegionGap = minRegionGap;
     }
+    
+    
 
     @Override
     protected boolean processNode(RegionProgression node) {
@@ -256,14 +278,37 @@ public class RegularShapeTrialEnsemble {
         command = new NormPoint(normalizedTime, normalizedEdgeLength);
       }
       
-      print("Executing level " + level + ", region " + node.region());
+      if (minRegionGap > node.region() - node.parent().region() || (3 - level) * minRegionGap > regions - node.region() - 1) {
+        return false;
+      }
+      {
+        ArrayList<Integer> regionStack = new ArrayList<>();
+        for (RegionProgression n = node; !n.isRoot(); n = n.parent())
+          regionStack.add(n.region());
+        print("Executing level " + level + ", region " + node.region() + " - " + regionStack);
+      }
+      
       if (! trial.runToOrbitalPoint(command) ) {
         printBackout(node, trial);
         return false;
       }
       
       if (node.isLeaf()) {
-        print("Maneuver completed. Holding shape until completion of orbit");
+        print("Maneuver completed.");
+        
+        if (trial.getCmEnergyGain() < 0) {
+          print("..but CM energy gain is negative (" + FORMAT.format(trial.getCmEnergyGain()) + " J) so not pursuing..");
+          printBackout(node, trial);
+          return false;
+        }
+        
+        if (tethersMaxedOut(trial)) {
+          print("..but the tethers are at the break point, so not pursuing..");
+          printBackout(node, trial);
+          return false;
+        }
+
+        print("Holding shape until completion of orbit");
         trial.updateSnapshot();
         if (! trial.runToCompleteOrbit() ) {
           printBackout(node, trial);
@@ -277,6 +322,20 @@ public class RegularShapeTrialEnsemble {
       
       return true;
     }
+    
+    
+    private boolean tethersMaxedOut(RegularShapeTrial trial) {
+      Tetra craft = trial.getSystem().getCraft();
+      int count = 0;
+      for (int t = 0; t < 6; ++t) {
+        double tether = craft.getTetherByIndex(t);
+        if (-tether >= constraints.maxTensileForce - MAX_TENSILE_WATERMARK)
+          ++count;
+      }
+      return count > 2;
+    }
+    
+    private final static double MAX_TENSILE_WATERMARK = 5;
     
     
     private void printBackout(RegionProgression node, RegularShapeTrial trial) {
@@ -293,46 +352,59 @@ public class RegularShapeTrialEnsemble {
   
   
   public static void main(String[] args) {
+    
     int regions;
     if (args.length > 0) {
       regions = Integer.parseInt(args[0]);
       if (regions < 3)
         throw new IllegalArgumentException(args[0]);
-      if (regions > 10) {
-        System.out.println("Go grab a cuppa coffee. Call someone, whatever. Gonna be a while before we finish..");
-        System.out.println();
-      }
     } else
       regions = 4;
-    LonelyEarth.Constraints constraints = new LonelyEarth.Constraints();
-    RegularShapeTrialEnsemble instance = new RegularShapeTrialEnsemble(constraints, regions);
     
-    System.out.println("Executing over " + regions + " regions");
-    System.out.println(instance.countRegionCombinations(regions) + " possible combinations to try");
+    int minRegionGap = args.length > 1 ? Integer.parseInt(args[1]) : 1;
+    
+    LonelyEarth.Constraints constraints = new LonelyEarth.Constraints();
+    constraints.maxTetherLength = 20000;
+    constraints.steadyStateTetherLength = 500;
+    constraints.initTetherLength = 500;
+    RegularShapeTrialEnsemble instance = new RegularShapeTrialEnsemble(constraints, regions, minRegionGap);
+    
+    System.out.println("Executing over " + regions + " regions with at least " + minRegionGap + " regions between decisions");
     System.out.println();
     
     instance.execute();
     
     List<RegularShapeTrial> trials = instance.getTrials();
     
-    Collections.sort(trials, new TrialComparator());
+    Collections.sort(trials, new CmEnergyComparator());
+    
+    
+    System.out.println("All passed trials");
+    System.out.println("----------");
+    int i = 0;
+    for (RegularShapeTrial trial : trials) {
+      System.out.println();
+      System.out.println(++i + ".\t" + trial.getCommandsReceived());
+      instance.printSummary(trial);
+    }
     
     int countDown = Math.min(10, trials.size());
 
 
+    System.out.println();
     System.out.println("# # # # # # # # # # # # # # # # # # # # # # # #");
     System.out.println("#");
     System.out.println("#\tTop " + countDown + " count down");
     System.out.println("#");
     System.out.println("# # # # # # # # # # # # # # # # # # # # # # # #");
     
-    int i = 0;
+    i = 1;
     while (countDown-- > 0) {
-      
-      RegularShapeTrial trial = trials.get(countDown);
+      RegularShapeTrial trial = trials.get(trials.size() - i);
       System.out.println();
-      System.out.println(++i + ".\t" + trial.getCommandsReceived());
+      System.out.println(i + ".\t" + trial.getCommandsReceived());
       instance.printSummary(trial);
+      ++i;
     }
   }
   
@@ -342,49 +414,41 @@ public class RegularShapeTrialEnsemble {
   
   
   
-  public static class TrialComparator implements Comparator<RegularShapeTrial> {
+
+  
+  
+  
+  public static class CmEnergyComparator implements Comparator<RegularShapeTrial> {
     
-    private final static double EG_EQUIV_RATIO = 0.85;
-    private final static double IGNORABLE_E_DELTA = 1;
-
-
+    private final double SWAMP_FACTOR = 32;
+    
     @Override
     public int compare(RegularShapeTrial a, RegularShapeTrial b) {
-      int fuzzyCmComparison = compareCmEnergyGain(a, b);
-      if (fuzzyCmComparison != 0)
-        return fuzzyCmComparison;
       
-      double aRotEnergyLoss = -a.getRotationalEnergyGain();
-      double bRotEnergyLoss = -b.getRotationalEnergyGain();
-      
-      if (Math.abs(aRotEnergyLoss - bRotEnergyLoss) < IGNORABLE_E_DELTA)
-        return 0;
-      
-      return aRotEnergyLoss > bRotEnergyLoss ? 1 : -1;
-    }
-    
-    
-    private int compareCmEnergyGain(RegularShapeTrial a, RegularShapeTrial b) {
       double aCmE = a.getCmEnergyGain();
       double bCmE = b.getCmEnergyGain();
-      if (Math.abs(aCmE - bCmE) < IGNORABLE_E_DELTA)
+      
+      double cmDiff = aCmE - bCmE;
+      
+      if (Math.abs(cmDiff) < 1 || Math.abs(aCmE / cmDiff) > SWAMP_FACTOR && Math.abs(bCmE / cmDiff) > SWAMP_FACTOR) {
+        double aRotE = a.getRotationalEnergyGain();
+        double bRotE = b.getRotationalEnergyGain();
+        
+        double rotDiff = a.getRotationalEnergy() - b.getRotationalEnergy();
+        if (Math.abs(rotDiff) > 2) {
+          return rotDiff > 0 ? -1 : 1;
+        }
+      }
+      
+      if (aCmE < bCmE)
+        return -1;
+      else if (bCmE > aCmE)
+        return 1;
+      else
         return 0;
-      if (Math.abs(aCmE) > Math.abs(bCmE) && bCmE / aCmE > EG_EQUIV_RATIO)
-        return 0;
-      if (Math.abs(bCmE) > Math.abs(aCmE) && aCmE / bCmE > EG_EQUIV_RATIO)
-        return 0;
-      return aCmE > bCmE ? 1 : -1;
     }
     
-    
-    
-    
-    
   }
-  
-  
-  
-  
   
   
   

@@ -111,7 +111,7 @@ public class SimpleEquiTrial {
     
   }
 
-  private final LonelyEarth.Constraints config;
+  private final Constraints config;
   
   private final Profile profile;
   
@@ -137,7 +137,7 @@ public class SimpleEquiTrial {
   /**
    * 
    */
-  public SimpleEquiTrial(LonelyEarth.Constraints constraints, Profile profile) {
+  public SimpleEquiTrial(Constraints constraints, Profile profile) {
     this.config = constraints.clone();
     if (!config.isValid())
       throw new IllegalArgumentException(config.toString());

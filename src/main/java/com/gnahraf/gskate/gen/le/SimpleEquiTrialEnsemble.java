@@ -75,7 +75,7 @@ public class SimpleEquiTrialEnsemble {
   
 
   
-  private final LonelyEarth.Constraints constraints;
+  private final Constraints constraints;
   private final double scaledMin;
   private final int regions;
   
@@ -85,7 +85,7 @@ public class SimpleEquiTrialEnsemble {
   /**
    * 
    */
-  public SimpleEquiTrialEnsemble(LonelyEarth.Constraints constraints, int regions) {
+  public SimpleEquiTrialEnsemble(Constraints constraints, int regions) {
     this.constraints = constraints;
     this.scaledMin = constraints.steadyStateTetherLength / constraints.maxTetherLength;
     this.regions = regions;
@@ -230,7 +230,7 @@ public class SimpleEquiTrialEnsemble {
       }
     } else
       regions = 4;
-    LonelyEarth.Constraints constraints = new LonelyEarth.Constraints();
+    Constraints constraints = new Constraints();
     SimpleEquiTrialEnsemble instance = new SimpleEquiTrialEnsemble(constraints, regions);
     
     System.out.println("Executing over " + regions + " regions");

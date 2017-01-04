@@ -5,14 +5,18 @@ package com.gnahraf.gskate.gen.control;
 
 
 
-import static org.junit.Assert.*;
-import static com.gnahraf.gskate.gen.le.LonelyEarthTest.*;
+import static com.gnahraf.gskate.gen.le.LonelyEarthTest.FORMAT;
+import static com.gnahraf.gskate.gen.le.LonelyEarthTest.printCraft;
+import static com.gnahraf.gskate.gen.le.LonelyEarthTest.printTetherForces;
+import static com.gnahraf.gskate.gen.le.LonelyEarthTest.printTetherLengths;
+import static com.gnahraf.gskate.gen.le.LonelyEarthTest.roughPeriod;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
 import com.gnahraf.gskate.control.ShapeFuzzyController;
+import com.gnahraf.gskate.gen.le.Constraints;
 import com.gnahraf.gskate.gen.le.LonelyEarth;
-import com.gnahraf.gskate.model.Simulation;
 import com.gnahraf.gskate.model.TetraCorner;
 
 
@@ -24,9 +28,9 @@ public class ShapeFuzzyControllerTest {
 
   @Test
   public void testConstant() {
-    LonelyEarth.Constraints constraints = new LonelyEarth.Constraints();
+    Constraints constraints = new Constraints();
     constraints.initTetherValue = 0;
-    constraints.initKmsAboveGround = 300;
+    constraints.initKmsAboveGround = 301;
     LonelyEarth system = new LonelyEarth(constraints);
     
     printTetherLengths(system);
@@ -63,7 +67,7 @@ public class ShapeFuzzyControllerTest {
     final int controlMillis = 40;
     final double navEdgeLengthDelta = (maxEdgeLength - minEdgeLength) * 2 / navigationCommandsPerOrbit;
 
-    LonelyEarth.Constraints constraints = new LonelyEarth.Constraints();
+    Constraints constraints = new Constraints();
     constraints.initTetherValue = 0;
     constraints.initKmsAboveGround = 1200;
     constraints.initTetherLength = minEdgeLength;
@@ -134,7 +138,7 @@ public class ShapeFuzzyControllerTest {
   @Test
   public void testStrechCornerTarget() {
 
-    LonelyEarth.Constraints constraints = new LonelyEarth.Constraints();
+    Constraints constraints = new Constraints();
     constraints.initTetherValue = 0;
     constraints.initKmsAboveGround = 1200;
     constraints.initTetherLength = 100;
@@ -198,7 +202,7 @@ public class ShapeFuzzyControllerTest {
   @Test
   public void testStretchCornerAndFace() {
 
-    LonelyEarth.Constraints constraints = new LonelyEarth.Constraints();
+    Constraints constraints = new Constraints();
     constraints.initTetherValue = 0;
     constraints.initKmsAboveGround = 1200;
     constraints.initTetherLength = 100;

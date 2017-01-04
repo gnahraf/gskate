@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.gnahraf.gskate.control.ShapeFuzzyController;
 import com.gnahraf.gskate.control.ShapeMetaController;
+import com.gnahraf.gskate.gen.le.Constraints;
 import com.gnahraf.gskate.gen.le.LonelyEarth;
 import com.gnahraf.gskate.model.Bob;
 import com.gnahraf.gskate.model.Simulation;
@@ -27,7 +28,7 @@ public class RegularShapeTrial {
 
 
 
-  private final LonelyEarth.Constraints config;
+  private final Constraints config;
   
   private final Simulation system;
   
@@ -56,7 +57,7 @@ public class RegularShapeTrial {
   /**
    * 
    */
-  public RegularShapeTrial(LonelyEarth.Constraints constraints) {
+  public RegularShapeTrial(Constraints constraints) {
     this.config = constraints.clone();
     if (!config.isValid())
       throw new IllegalArgumentException(config.toString());

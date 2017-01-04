@@ -17,7 +17,7 @@ public class LonelyEarthTest {
 
   @Test
   public void test() {
-    LonelyEarth.Constraints constraints = new LonelyEarth.Constraints();
+    Constraints constraints = new Constraints();
     constraints.initTetherValue = 0;
     LonelyEarth system = new LonelyEarth(constraints);
     

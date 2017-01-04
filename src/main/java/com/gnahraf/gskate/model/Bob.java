@@ -221,4 +221,40 @@ public class Bob {
   public double getAz() {
     return az;
   }
+  
+  
+  
+  
+  public boolean equals(Bob other) {
+    if (this == other)
+      return true;
+    if (other == null)
+      return false;
+    return
+        x == other.x &&
+        y == other.y &&
+        z == other.z &&
+        vx == other.vx &&
+        vy == other.vy &&
+        vz == other.vz;
+  }
+  
+  
+  @Override
+  public boolean equals(Object o) {
+    return this == o || (o instanceof Bob) && equals((Bob) o);
+  }
+  
+  
+
+  @Override
+  public int hashCode() {
+    int hash = Double.hashCode(x);
+    hash ^= Double.hashCode(y);
+    hash ^= Double.hashCode(z);
+    hash ^= Double.hashCode(vx);
+    hash ^= Double.hashCode(vy);
+    hash ^= Double.hashCode(vz);
+    return hash;
+  }
 }

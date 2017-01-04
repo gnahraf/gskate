@@ -3,7 +3,7 @@
  */
 package com.gnahraf.gskate.model;
 
-import java.util.Arrays;
+
 
 /**
  * A 4 kg craft consisting of 4 mutually tethered bobs. We assume the
@@ -296,6 +296,39 @@ public class Tetra {
       bobs[i].copyFrom(other.bobs[i]);
     for (int i = 0; i < 6; ++i)
       tethers[i] = other.tethers[i];
+  }
+  
+  
+  
+  public boolean equals(Tetra other) {
+    if (this == other)
+      return true;
+    if (other == null)
+      return false;
+    for (int i = 0; i < 6; ++i)
+      if (tethers[i] != other.tethers[i])
+        return false;
+    for (int i = 0; i < 4; ++i)
+      if (!bobs[i].equals(other.bobs[i]))
+        return false;
+    return true;
+  }
+  
+  
+  @Override
+  public boolean equals(Object o) {
+    return this == o || o instanceof Tetra && equals((Tetra) o);
+  }
+  
+
+  @Override
+  public int hashCode() {
+    int hash = 0;
+    for (int i = 0; i < 4; ++i)
+      hash ^= bobs[i].hashCode();
+    for (int i = 0; i < 6; ++i)
+      hash ^= Double.hashCode(tethers[i]);
+    return hash;
   }
 
 }

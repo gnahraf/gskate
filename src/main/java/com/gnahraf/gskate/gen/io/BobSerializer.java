@@ -11,7 +11,8 @@ import com.gnahraf.gskate.model.Bob;
 
 /**
  * Reads and writes <tt>Bob<tt>s to memory buffers. Suitable for serializing
- * and de-serializing to and from stream.
+ * and de-serializing to and from streams. Instances are stateless and therefore
+ * safe under concurrent access.
  */
 public class BobSerializer {
   

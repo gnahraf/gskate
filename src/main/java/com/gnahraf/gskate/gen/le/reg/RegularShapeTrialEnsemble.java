@@ -10,7 +10,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import com.gnahraf.gskate.gen.le.LonelyEarth;
+import com.gnahraf.gskate.gen.le.Constraints;
 import com.gnahraf.gskate.gen.le.SimpleEquiTrial;
 import com.gnahraf.gskate.model.Tetra;
 import com.gnahraf.gskate.model.TetraEdge;
@@ -103,7 +103,7 @@ public class RegularShapeTrialEnsemble {
   
 
   
-  private final LonelyEarth.Constraints constraints;
+  private final Constraints constraints;
   private final double scaledMin;
   private final int regions;
   
@@ -116,7 +116,7 @@ public class RegularShapeTrialEnsemble {
   /**
    * 
    */
-  public RegularShapeTrialEnsemble(LonelyEarth.Constraints constraints, int regions, int minRegionGap) {
+  public RegularShapeTrialEnsemble(Constraints constraints, int regions, int minRegionGap) {
     this.constraints = constraints;
     this.scaledMin = constraints.steadyStateTetherLength / constraints.maxTetherLength;
     this.regions = regions;
@@ -363,7 +363,7 @@ public class RegularShapeTrialEnsemble {
     
     int minRegionGap = args.length > 1 ? Integer.parseInt(args[1]) : 1;
     
-    LonelyEarth.Constraints constraints = new LonelyEarth.Constraints();
+    Constraints constraints = new Constraints();
     constraints.maxTetherLength = 20000;
     constraints.steadyStateTetherLength = 500;
     constraints.initTetherLength = 500;

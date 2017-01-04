@@ -11,7 +11,9 @@ import java.nio.ByteBuffer;
 import com.gnahraf.gskate.model.Tetra;
 
 /**
- *
+ * Reads and writes <tt>Tetra<tt>s to memory buffers. Suitable for serializing
+ * and de-serializing to and from streams. Instances are stateless and therefore
+ * safe under concurrent access.
  */
 public class TetraSerializer {
   

@@ -3,18 +3,22 @@
  */
 package com.gnahraf.gskate.gen.le.reg;
 
+import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 import com.gnahraf.gskate.gen.le.Constraints;
 import com.gnahraf.gskate.gen.le.SimpleEquiTrial;
+import com.gnahraf.gskate.gen.le.io.TrialStore;
 import com.gnahraf.gskate.model.Tetra;
 import com.gnahraf.gskate.model.TetraEdge;
 import com.gnahraf.gskate.model.TetraShape;
+import com.gnahraf.print.TablePrint;
 import com.gnahraf.util.data.NormPoint;
 import com.gnahraf.util.tree.DecisionTreeProcessor;
 import com.gnahraf.util.tree.RegionProgression;
@@ -76,7 +80,7 @@ import com.gnahraf.util.tree.TreeNode;
      the time axis so that
    <p/> 
    <pre><tt>
-                  0 < 0 < t1 < t2 < t3 <= n  (n >= 3)
+                  0 < t1 < t2 < t3 <= n  (n >= 3)
    </tt></pre>
    <p/>
      with t1, t2, and t3 taking on only integral values.
@@ -92,10 +96,12 @@ import com.gnahraf.util.tree.TreeNode;
  *
  * <h4>After-thoughts</h4>
  * <p/>
+ * <strike>
  * On increasing the number of the regions, we discover entire classes of
  * ineligible profiles that we need not try. This, in turn, is a general problem
  * that I'll doubtless revisit under other conditions, as I vary the model. Turning
  * my attention in this direction. -- 26 November 2016
+ * </strike><br/><strong>Done.</strong>
  */
 public class RegularShapeTrialEnsemble {
   
@@ -157,34 +163,15 @@ public class RegularShapeTrialEnsemble {
     System.out.println();
     
 
-    System.out.println("\tEdge\t\tLength (m)\tForce (N)  (+/- : push/pull)");
-    {
-
-      Tetra craft = trial.getSystem().getCraft();
-      TetraShape shape = craft.getShape();
-      for (TetraEdge edge : TetraEdge.values()) {
-        System.out.println("\t" + edge + "\t" + FORMAT.format(shape.length(edge.index)) + "   \t" + FORMAT.format(craft.getTetherByIndex(edge.index)));
-      }
-    }
-    
-//    double minTetherForce, maxTetherForce;
-//    {
-//      Tetra craft = trial.getSystem().getCraft();
-//      int index = 5;
-//      minTetherForce = maxTetherForce = craft.getTetherByIndex(index);
-//      while (index-- > 0) {
-//        double tetherForce = craft.getTetherByIndex(index);
-//        if (tetherForce < minTetherForce)
-//          minTetherForce = tetherForce;
-//        else if (tetherForce > maxTetherForce)
-//          maxTetherForce = tetherForce;
-//      }
-//    }
-    
-    
-    
-    
-//    System.out.println("\tTether  force range: [" + FORMAT.format(minTetherForce) + ", " + FORMAT.format(maxTetherForce) + "] N");
+    Tetra craft = trial.getSystem().getCraft();
+    TetraShape shape = craft.getShape();
+    TablePrint tablePrint = new TablePrint(15, 15, 17);
+    tablePrint.setIndentation(8);
+    tablePrint.printRow("Edge", "Length (m)", "Force (N)");
+    tablePrint.printRow(null, null, "(+/- : push/pull)");
+    tablePrint.printHorizontalTableEdge('-');
+    for (TetraEdge edge : TetraEdge.values())
+      tablePrint.printRow(edge, shape.length(edge), craft.getTether(edge));
     System.out.println();
   }
   
@@ -192,36 +179,6 @@ public class RegularShapeTrialEnsemble {
   
   
   private final DecimalFormat FORMAT = new DecimalFormat("#,###.##");
-  
-  
-  
-  
-  
-  /**
-   * Count the number of 3 point profiles over a circular path partitioned into
-   * <tt>n</tt> regions. Using a computational short cut here instead of doing
-   * the actual sum. Programmatically, this is just being cute. But it does give
-   * insight how this might be generalized to <tt>k</tt> points. 
-   */
-  private int countRegionCombinations(int n) {
-    int count = ((n - 2) * (n - 1)) / 2;
-    count += sumOfSquares(n - 2);
-    return count / 2;
-  }
-  
-  
-  private int sumOfSquares(int n) {
-    return (n * (n + 1) * (2*n + 1)) / 6;
-  }
-  
-  
-  
-  
-  
-  
-  
-  
-  
   
   
   /**
@@ -309,7 +266,7 @@ public class RegularShapeTrialEnsemble {
         }
 
         print("Holding shape until completion of orbit");
-        trial.updateSnapshot();
+        trial.newSnapshot();
         if (! trial.runToCompleteOrbit() ) {
           printBackout(node, trial);
           return false;
@@ -340,7 +297,7 @@ public class RegularShapeTrialEnsemble {
     
     private void printBackout(RegionProgression node, RegularShapeTrial trial) {
       print(trial.getException());
-      print(".. at normalized orbit time " + (((float) trial.trialTime()) / trial.getPeriodMillis()));
+      print(".. at normalized orbit time " + (((float) trial.getTrialTime()) / trial.getPeriodMillis()));
       print("Backing out of level " + node.level() + ", region " + node.region() + "\n");
     }
     
@@ -348,8 +305,7 @@ public class RegularShapeTrialEnsemble {
   
   
 
-  
-  
+
   
   public static void main(String[] args) {
     
@@ -363,10 +319,71 @@ public class RegularShapeTrialEnsemble {
     
     int minRegionGap = args.length > 1 ? Integer.parseInt(args[1]) : 1;
     
-    Constraints constraints = new Constraints();
-    constraints.maxTetherLength = 20000;
-    constraints.steadyStateTetherLength = 500;
-    constraints.initTetherLength = 500;
+    
+    
+    TrialStore store;
+    {
+      String path = null;
+      for (String arg : args) {
+        if (arg.startsWith("store=")) {
+          path = arg.substring("store=".length());
+          break;
+        }
+      }
+      if (path == null || path.isEmpty())
+        path = "data/store";
+      
+      File dir = new File(path);
+      
+      // some chattiness..
+      if (!dir.exists()) {
+        System.out.println("Directory " + dir + " does not exist.");
+        System.out.println("Creating TrialStore there for you.");
+      } else
+        System.out.println("Loading TrialStore from " + dir);
+      
+      store = new TrialStore(dir);
+    }
+    
+    
+    Constraints constraints;
+    {
+      String path = null;
+      for (String arg : args) {
+        if (arg.startsWith("constraints=")) {
+          path = arg.substring("constraints=".length());
+          break;
+        }
+      }
+      if (path == null || path.isEmpty())
+        path = "data" + File.separator + "configs" + File.separator + "constraints.xml";
+      
+      File file = new File(path);
+      if (!file.exists()) {
+        System.out.println("File " + file + " does not exist.");
+        System.out.println("Creating default constraints there for you.");
+        System.out.println("Review, edit and then relaunch.");
+        
+        File dir = file.getParentFile();
+        if (dir != null && !dir.exists() && !dir.mkdirs() && !dir.isDirectory()) {
+          System.out.println("Bailing on " + file);
+          System.exit(1);
+        }
+
+        
+        constraints = new Constraints();
+        constraints.maxTetherLength = 20000;
+        constraints.steadyStateTetherLength = 250;
+        constraints.initTetherLength = 250;
+        store.writeConstraints(constraints, file);
+        
+        System.exit(2);
+      } else {
+        System.out.println("Loading constraints from " + file);
+        constraints = store.readConstraints(file);
+      }
+    }
+    
     RegularShapeTrialEnsemble instance = new RegularShapeTrialEnsemble(constraints, regions, minRegionGap);
     
     System.out.println("Executing over " + regions + " regions with at least " + minRegionGap + " regions between decisions");
@@ -379,8 +396,9 @@ public class RegularShapeTrialEnsemble {
     Collections.sort(trials, new CmEnergyComparator());
     
     
-    System.out.println("All passed trials");
-    System.out.println("----------");
+    System.out.println(trials.size() + " trials passed.");
+    System.out.println(           "--------------------");
+    System.out.println();
     int i = 0;
     for (RegularShapeTrial trial : trials) {
       System.out.println();
@@ -388,7 +406,7 @@ public class RegularShapeTrialEnsemble {
       instance.printSummary(trial);
     }
     
-    int countDown = Math.min(10, trials.size());
+    int countDown = Math.min(trials.size(), 5 + trials.size() / 5);
 
 
     System.out.println();
@@ -404,6 +422,10 @@ public class RegularShapeTrialEnsemble {
       System.out.println();
       System.out.println(i + ".\t" + trial.getCommandsReceived());
       instance.printSummary(trial);
+      if (store != null) {
+        String entry = store.writeRegularShapeTransform(trial);
+        System.out.println("\tDB entry " + entry);
+      }
       ++i;
     }
   }

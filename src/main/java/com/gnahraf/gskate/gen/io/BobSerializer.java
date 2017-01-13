@@ -13,6 +13,9 @@ import com.gnahraf.gskate.model.Bob;
  * Reads and writes <tt>Bob<tt>s to memory buffers. Suitable for serializing
  * and de-serializing to and from streams. Instances are stateless and therefore
  * safe under concurrent access.
+ * <h4>Note</h4>
+ * A <tt>Bob</tt>'s acceleration vector is not part of its state (it's just a
+ * convenient scratch pad for calculating stuff), so it isn't serialized.
  */
 public class BobSerializer {
   
@@ -29,9 +32,9 @@ public class BobSerializer {
     buffer.putDouble(bob.getVy());
     buffer.putDouble(bob.getVz());
     
-    buffer.putDouble(bob.getAx());
-    buffer.putDouble(bob.getAy());
-    buffer.putDouble(bob.getAz());
+//    buffer.putDouble(bob.getAx());
+//    buffer.putDouble(bob.getAy());
+//    buffer.putDouble(bob.getAz());
   }
   
   
@@ -47,14 +50,14 @@ public class BobSerializer {
     double vy = buffer.getDouble();
     double vz = buffer.getDouble();
     
-    double ax = buffer.getDouble();
-    double ay = buffer.getDouble();
-    double az = buffer.getDouble();
+//    double ax = buffer.getDouble();
+//    double ay = buffer.getDouble();
+//    double az = buffer.getDouble();
     
     Bob bob = new Bob();
     bob.setPosition(x, y, z);
     bob.setVelocity(vx, vy, vz);
-    bob.setAcceleration(ax, ay, az);
+//    bob.setAcceleration(ax, ay, az);
     
     return bob;
   }

@@ -5,15 +5,19 @@ package com.gnahraf.gskate.gen.le.io;
 
 
 import static org.junit.Assert.*;
+import static com.gnahraf.gskate.model.TetraTest.*;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import org.junit.Test;
 
 import com.gnahraf.gskate.gen.le.Constraints;
-import com.gnahraf.io.PathnameGenerator;
+import com.gnahraf.gskate.model.CraftState;
+import com.gnahraf.gskate.model.Tetra;
+import com.gnahraf.gskate.model.TetraTest;
 import com.gnahraf.test.IoTestCase;
-import com.gnahraf.test.TestOutputFiles;
+import com.gnahraf.util.data.NormPoint;
 
 /**
  *
@@ -88,6 +92,94 @@ public class TrialStoreTest extends IoTestCase {
     assertEquals(constraints, copy);
   }
   
+  
+  
+  
+  @Test
+  public void testReadWriteCraftState() {
+    TrialStore store = newStore(new Object() { });
+    Tetra craft = newCraft();
+    CraftState input = new CraftState(1025, craft);
+    String id = store.writeCraftState(input);
+    CraftState output = store.readCraftState(id);
+    assertEquals(input, output);
+    
+    
+    craft.setTetherByIndex(2, craft.getTetherByIndex(2) + .001);
+    
+    CraftState input2 = new CraftState(1025, craft);
+    String id2 = store.writeCraftState(input2);
+    assertNotEquals(id, id2);
+    CraftState output2 = store.readCraftState(id2);
+    assertEquals(input2, output2);
+    
+    assertNotEquals(output, output2);
+  }
+  
+  
+
+  @Test
+  public void testWriteCraftIdempotence() {
+    TrialStore store = newStore(new Object() { });
+    Tetra craft = newCraft();
+    CraftState input = new CraftState(1025, craft);
+    String id = store.writeCraftState(input);
+    
+    assertEquals(id, store.writeCraftState(input));
+    assertEquals(input, store.readCraftState(id));
+  }
+  
+  
+  
+  @Test
+  public void testReadWriteRegularShapeTrialCommandSet() {
+    TrialStore store = newStore(new Object() { });
+    ArrayList<NormPoint> commands = new ArrayList<>();
+    commands.add(new NormPoint(0.1, 0.01));
+    commands.add(new NormPoint(0.4, 0.51));
+    commands.add(new NormPoint(0.8, 0.2));
+    
+    String id = store.writeRegularShapeTrialCommandSet(commands);
+    
+    assertEquals(commands, store.readRegularShapeTrialCommandSet(id));
+  }
+  
+  
+  
+  @Test
+  public void testWriteRegularShapeTrialCommandSetIdempotence() {
+    TrialStore store = newStore(new Object() { });
+    ArrayList<NormPoint> commands = new ArrayList<>();
+    commands.add(new NormPoint(0.1, 0.01));
+    commands.add(new NormPoint(0.49, 0.51));
+    commands.add(new NormPoint(0.8, 0.2));
+    
+    String id = store.writeRegularShapeTrialCommandSet(commands);
+    
+    assertEquals(id, store.writeRegularShapeTrialCommandSet(commands));
+    assertEquals(commands, store.readRegularShapeTrialCommandSet(id));
+  }
+  
+  
+  
+  @Test
+  public void testReadWriteRegularShapeTransformData() {
+    TrialStore store = newStore(new Object() { });
+    
+    RegularShapeTransform.Builder transform = new RegularShapeTransform.Builder();
+    transform.config = "c";
+    transform.startState = "start";
+    transform.endState = "end";
+    transform.commandSet = "cmds";
+    
+    RegularShapeTransform txf = transform.build();
+    String id = store.writeRegularShapeTransformData(txf);
+    assertEquals(txf, store.readRegularShapeTransform(id));
+    
+    // idempotence check
+    assertEquals(id, store.writeRegularShapeTransformData(txf));
+    assertEquals(txf, store.readRegularShapeTransform(id));
+  }
   
   
   

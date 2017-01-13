@@ -18,7 +18,6 @@ public class LonelyEarthTest {
   @Test
   public void test() {
     Constraints constraints = new Constraints();
-    constraints.initTetherValue = 0;
     LonelyEarth system = new LonelyEarth(constraints);
     
     printTetherLengths(system);

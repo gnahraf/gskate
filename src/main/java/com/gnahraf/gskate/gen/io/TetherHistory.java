@@ -11,7 +11,10 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 /**
- *
+ * The idea was to keep a record of the changing tether values, but
+ * it turns out this would much too chatty.
+ * 
+ * Last comment before >$ git rm
  */
 public class TetherHistory {
   

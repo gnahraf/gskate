@@ -29,7 +29,6 @@ public class ShapeFuzzyControllerTest {
   @Test
   public void testConstant() {
     Constraints constraints = new Constraints();
-    constraints.initTetherValue = 0;
     constraints.initKmsAboveGround = 301;
     LonelyEarth system = new LonelyEarth(constraints);
     
@@ -68,7 +67,6 @@ public class ShapeFuzzyControllerTest {
     final double navEdgeLengthDelta = (maxEdgeLength - minEdgeLength) * 2 / navigationCommandsPerOrbit;
 
     Constraints constraints = new Constraints();
-    constraints.initTetherValue = 0;
     constraints.initKmsAboveGround = 1200;
     constraints.initTetherLength = minEdgeLength;
     
@@ -139,7 +137,6 @@ public class ShapeFuzzyControllerTest {
   public void testStrechCornerTarget() {
 
     Constraints constraints = new Constraints();
-    constraints.initTetherValue = 0;
     constraints.initKmsAboveGround = 1200;
     constraints.initTetherLength = 100;
 
@@ -203,7 +200,6 @@ public class ShapeFuzzyControllerTest {
   public void testStretchCornerAndFace() {
 
     Constraints constraints = new Constraints();
-    constraints.initTetherValue = 0;
     constraints.initKmsAboveGround = 1200;
     constraints.initTetherLength = 100;
 

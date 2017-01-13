@@ -62,9 +62,6 @@ public class LonelyEarth extends Simulation {
       bob.setVelocity(0, orbitalSpeed, 0);
     }
     
-    for (int i = 0; i < 6; ++i)
-      craft.setTetherByIndex(i, this.constraints.initTetherValue);
-    
   }
   
   

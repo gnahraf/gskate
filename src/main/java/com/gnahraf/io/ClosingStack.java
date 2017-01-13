@@ -3,6 +3,7 @@
  */
 package com.gnahraf.io;
 
+
 import java.util.ArrayDeque;
 import java.util.NoSuchElementException;
 
@@ -29,19 +30,21 @@ public class ClosingStack implements AutoCloseable {
 
   @Override
   public void close() {
-    while (!stack.isEmpty())
+    while (!stack.isEmpty()) {
+      AutoCloseable resource = stack.pop();
       try {
-        stack.pop().close();
+        resource.close();
       } catch (Exception x) {
-        suppressClosingException(x);
+        suppressClosingException(resource, x);
       }
+    }
   }
 
   
   /**
    * Noop hook.
    */
-  protected void suppressClosingException(Exception x) {
+  protected void suppressClosingException(AutoCloseable resource, Exception x) {
   }
 
 }

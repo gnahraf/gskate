@@ -3,6 +3,10 @@
  */
 package com.gnahraf.io;
 
+
+import java.io.File;
+import java.io.FilenameFilter;
+
 import javax.xml.bind.DatatypeConverter;
 
 /**
@@ -59,6 +63,14 @@ public class HashedFilename {
   
   
   
+  public FilenameFilter getFilenameFilter() {
+    return new FilenameFilter() {
+      @Override
+      public boolean accept(File dir, String name) {
+        return name.startsWith(prefix) && name.endsWith(extension);
+      }
+    };
+  }
   
   
 

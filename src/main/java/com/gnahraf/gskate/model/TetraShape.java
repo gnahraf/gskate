@@ -96,6 +96,11 @@ public class TetraShape {
   }
   
   
+  public double length(TetraEdge edge) {
+    return lengths[edge.index];
+  }
+  
+  
   /**
    * Sets the lengths of the edges after validation.
    * 

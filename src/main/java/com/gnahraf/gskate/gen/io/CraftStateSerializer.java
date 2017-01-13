@@ -8,6 +8,7 @@ import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
+import com.gnahraf.gskate.model.CraftState;
 import com.gnahraf.gskate.model.Tetra;
 
 /**

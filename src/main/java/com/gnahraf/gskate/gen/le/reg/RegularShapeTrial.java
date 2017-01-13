@@ -12,37 +12,32 @@ import com.gnahraf.gskate.control.ShapeMetaController;
 import com.gnahraf.gskate.gen.le.Constraints;
 import com.gnahraf.gskate.gen.le.LonelyEarth;
 import com.gnahraf.gskate.model.Bob;
+import com.gnahraf.gskate.model.CraftState;
 import com.gnahraf.gskate.model.Simulation;
-import com.gnahraf.gskate.model.Tetra;
+import com.gnahraf.gskate.model.SphericalBodyPotential;
 import com.gnahraf.gskate.model.TetraShape;
 import com.gnahraf.util.data.NormPoint;
 
 /**
- *
+ * Simulation of a single orbit of a {@linkplain Tetra} craft about Earth,
+ * parameterized by a command-set describing the edge length of a regular
+ * tetrahedron.
  */
 public class RegularShapeTrial {
   
   private final List<NormPoint> commandsReceived = new ArrayList<NormPoint>();
 
-  
-
-
-
   private final Constraints config;
   
   private final Simulation system;
   
-//  private final ShapeFuzzyController fuzzyControl;
-  
   private final ShapeMetaController controller;
+
+  private final CraftState initState;
   
   private final int periodMillis;
-
-
-  private final long initSystemTime;
-  private final double initEnergy;
-  private final double initCmEnergy;
-  private final double initRadius;
+  
+  
   
   private int controlMillis = 40;
   
@@ -50,9 +45,7 @@ public class RegularShapeTrial {
   
   private RuntimeException error;
   
-  // should later be encapsulated in an object all its own, these 2..
-  private long snapSystemTime;
-  private Tetra snapCraft = new Tetra();
+  private CraftState snapshot;
 
   /**
    * 
@@ -62,18 +55,33 @@ public class RegularShapeTrial {
     if (!config.isValid())
       throw new IllegalArgumentException(config.toString());
     this.system = new LonelyEarth(config);
-    this.initSystemTime = system.getTime();
+    this.controller = createController(system);
+    this.initState = newSnapshot();
+    
+    periodMillis = estimateInitPeriodMillis();
+  }
+  
+  
+  public RegularShapeTrial(Constraints constraints, CraftState state) {
+    this.config = constraints.clone();
+    if (!config.isValid())
+      throw new IllegalArgumentException(config.toString());
+    this.system = new Simulation(new SphericalBodyPotential(), state);
+    this.controller = createController(system);
+    this.initState = newSnapshot();
+
+    periodMillis = estimateInitPeriodMillis();
+  }
+  
+  
+  
+  private ShapeMetaController createController(Simulation system) {
     ShapeFuzzyController fuzzyControl = new ShapeFuzzyController(system);
     fuzzyControl.setMinTetherLength(config.minTetherLength);
     fuzzyControl.setMaxCompressiveForce(config.maxCompressiveForce);
     fuzzyControl.setMaxTensileForce(config.maxTensileForce);
     fuzzyControl.freeze();
-    this.controller = new ShapeMetaController(fuzzyControl);
-    periodMillis = (int) (1000 * estimateInitPeriod());
-    initEnergy = getEnergy();
-    initCmEnergy = getCmEnergy();
-    initRadius = system.getCraft().newCmBob().distance(0, 0, 0);
-    updateSnapshot();
+    return new ShapeMetaController(fuzzyControl);
   }
   
   
@@ -83,33 +91,38 @@ public class RegularShapeTrial {
     this.config = copy.config.clone();
     this.system = copy.system.clone();
     this.controller = copy.controller.newSnapshot(this.system);
+    this.initState = copy.initState;
+    
     this.periodMillis = copy.periodMillis;
-    this.initSystemTime = copy.initSystemTime;
-    this.initEnergy = copy.initEnergy;
-    this.initCmEnergy = copy.initCmEnergy;
-    this.initRadius = copy.initRadius;
     
     this.controlMillis = copy.controlMillis;
     this.controlStepsPerProfilePoint = copy.controlStepsPerProfilePoint;
-    
-    this.snapSystemTime = copy.snapSystemTime;
-    this.snapCraft.copyFrom(copy.snapCraft);
-  }
-  
-  
-  public void updateSnapshot() {
-    snapSystemTime = system.getTime();
-    snapCraft.copyFrom(system.getCraft());
+
+    this.snapshot = copy.snapshot;
   }
   
   
   
-  public long getSnapSystemTime() {
-    return snapSystemTime;
+  public CraftState getInitState() {
+    return initState;
   }
   
-  public Tetra getSnapCraft() {
-    return snapCraft;
+  
+  /**
+   * Updates the snapshot with a new one encapsulating the current state and returns it.
+   * 
+   * @see #getSnapshot()
+   */
+  public CraftState newSnapshot() {
+    return snapshot = new CraftState(system.getTime(), system.getCraft());
+  }
+  
+  
+  /**
+   * Returns the last snapshot taken with {@linkplain #newSnapshot()}.
+   */
+  public CraftState getSnapshot() {
+    return snapshot;
   }
   
   
@@ -127,8 +140,8 @@ public class RegularShapeTrial {
   }
   
   
-  public int trialTime() {
-    return (int) (system.getTime() - initSystemTime);
+  public int getTrialTime() {
+    return (int) (system.getTime() - initState.getTime());
   }
   
 
@@ -155,7 +168,7 @@ public class RegularShapeTrial {
       
       commandsReceived.add(point);
       
-      int timeToTarget = (int) (point.x() * periodMillis) - trialTime();
+      int timeToTarget = (int) (point.x() * periodMillis) - getTrialTime();
       double edgeLength = point.y() * config.maxTetherLength;
       
       TetraShape targetShape = new TetraShape();
@@ -177,7 +190,7 @@ public class RegularShapeTrial {
     if (failed())
       throw new IllegalStateException("attempt to invoke on already-failed instance");
     
-    int remainingMillis = getPeriodMillis() - trialTime();
+    int remainingMillis = getPeriodMillis() - getTrialTime();
     if (remainingMillis < 1)
       return true;
     
@@ -196,45 +209,30 @@ public class RegularShapeTrial {
 
 
   public double getInitEnergy() {
-    return initEnergy;
+    return initState.getEnergy(system.getPotential());
   }
 
 
 
 
   public double getInitCmEnergy() {
-    return initCmEnergy;
+    return initState.getCmEnergy(system.getPotential());
   }
   
   
   
   public double getEnergy() {
-    return getEnergy(system.getCraft());
-  }
-  
-  
-  public double getEnergy(Tetra craft) {
-    return craft.getEnergy(system.getPotential());
+    return system.getEnergy();
   }
 
 
   public double getCmEnergy() {
-    return getCmEnergy(system.getCraft());
-  }
-
-
-  public double getCmEnergy(Tetra craft) {
-    return craft.getCmEnergy(system.getPotential());
+    return system.getCmEnergy();
   }
   
   
   public double getRotationalEnergy() {
-    return getRotationalEnergy(system.getCraft());
-  }
-  
-  
-  public double getRotationalEnergy(Tetra craft) {
-    return getEnergy(craft) - getCmEnergy(craft);
+    return getEnergy() - getCmEnergy();
   }
   
   
@@ -244,12 +242,12 @@ public class RegularShapeTrial {
   
   
   public double getEnergyGain() {
-    return getEnergy() - initEnergy;
+    return getEnergy() - getInitEnergy();
   }
   
   
   public double getCmEnergyGain() {
-    return getCmEnergy() - initCmEnergy;
+    return getCmEnergy() - getInitCmEnergy();
   }
   
   
@@ -259,7 +257,9 @@ public class RegularShapeTrial {
   
   
   public double getRadiusGain() {
-    return system.getCraft().newCmBob().distance(0, 0, 0) - initRadius;
+    return
+        system.getCraft().newCmBob().distance(0, 0, 0) -
+        initState.getCmBob().distance(0, 0, 0);
   }
   
   public List<NormPoint> getCommandsReceived() {
@@ -267,11 +267,18 @@ public class RegularShapeTrial {
   }
 
 
-  
+  private int estimateInitPeriodMillis() {
+    return (int) (1000 * estimateInitPeriod());
+  }
 
 
   /**
-   * I can do better than this.. Should easily generalize to an elliptic orbit
+   * I can do better than this.. <strike>Should easily generalize to an elliptic orbit.</strike>
+   * Umm.. this is actually a difficult problem for the general case. For now this will do.
+   * <p/>
+   * Another point is that we're just calling this the period. We could just see it as a
+   * deterministic scaling factor for our normalized point commands, though.
+   * We'll be keeping track of the periapsis and apoapsis vectors soon anywqy.
    */
   private double estimateInitPeriod() {
     Bob cm = system.getCraft().newCmBob();
@@ -279,6 +286,15 @@ public class RegularShapeTrial {
     double circum = 2 * r * Math.PI;
     double period = circum / cm.getV();
     return period;
+  }
+
+
+  /**
+   * Returns a copy of the constraints. (The one used by this
+   * instance is not mutable.)
+   */
+  public Constraints getConstraints() {
+    return config.clone();
   }
 
 }

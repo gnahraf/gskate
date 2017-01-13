@@ -28,11 +28,24 @@ public class Tetra {
   }
   
   
+
+  /**
+   * Copy constructor.
+   */
+  public Tetra(Tetra copy) {
+    this();
+    copyFrom(copy);
+  }
+  
+  
   
   
   public Bob getBob(int index) throws IndexOutOfBoundsException {
     return bobs[index];
   }
+  
+  
+  
   
   
 
@@ -138,6 +151,11 @@ public class Tetra {
   
   public double getTether(int bobA, int bobB) throws IndexOutOfBoundsException {
     return tethers[ getTetherIndex(bobA, bobB) ];
+  }
+  
+  
+  public double getTether(TetraEdge edge) {
+    return tethers[edge.index];
   }
   
   

@@ -5,6 +5,10 @@ package com.gnahraf.io;
 
 
 import java.io.File;
+import java.io.FilenameFilter;
+import java.util.AbstractList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  *
@@ -12,6 +16,7 @@ import java.io.File;
 public class HashedFilepath extends HashedFilename {
   
   private final File dir;
+  private final FilenameFilter filter;
 
   
   /**
@@ -31,6 +36,7 @@ public class HashedFilepath extends HashedFilename {
   public HashedFilepath(File dir, String prefix, String extension, boolean ensureDirectory) {
     super(prefix, extension);
     this.dir = dir;
+    this.filter = super.getFilenameFilter();
     if (dir == null)
       throw new IllegalArgumentException("dir " + dir);
     if (ensureDirectory && !dir.isDirectory()) {
@@ -57,11 +63,41 @@ public class HashedFilepath extends HashedFilename {
   
   
   
+  @Override
+  public FilenameFilter getFilenameFilter() {
+    return filter;
+  }
   
   
   
   public final File getDirectory() {
     return dir;
+  }
+  
+  
+  
+  public List<String> listHashes() {
+    
+    final String[] filenames = dir.list(filter);
+    if (filenames == null || filenames.length == 0)
+      return Collections.emptyList();
+    
+    return
+        new AbstractList<String>() {
+      
+          @Override
+          public String get(int index) {
+            String filename = filenames[index];
+            int start = getPrefix().length();
+            int end = filename.length() - getExtension().length();
+            return filename.substring(start, end);
+          }
+    
+          @Override
+          public int size() {
+            return filenames.length;
+          }
+        };
   }
 
 }

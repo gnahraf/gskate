@@ -46,6 +46,13 @@ public class Simulation {
   }
   
   
+  
+  public Simulation(Potential potential, CraftState state) {
+    this(potential, state.getCraft());
+    this.time = state.getTime();
+  }
+  
+  
   @Override
   public Simulation clone() {
     return new Simulation(this);
@@ -59,12 +66,14 @@ public class Simulation {
     return time;
   }
   
-  /**
-   * Sets the animation time in milliseconds.
-   */
-  public void setTime(long time) {
-    this.time = time;
-  }
+  
+
+//  /**
+//   * Sets the animation time in milliseconds. (Rather not have to..)
+//   */
+//  public void setTime(long time) {
+//    this.time = time;
+//  }
   
   
   
@@ -75,6 +84,26 @@ public class Simulation {
   
   public Tetra getCraft() {
     return craft;
+  }
+  
+  
+  /**
+   * Returns the total energy of the craft.
+   */
+  public double getEnergy() {
+    return craft.getEnergy(potential);
+  }
+  
+  
+  /**
+   * Returns the total energy of the craft sans its rotational energy.
+   * I.e. the kinetic energy calculated by averaging out the velocity
+   * vectors of the craft's bobs.
+   * 
+   * @see Tetra#getCmKe()
+   */
+  public double getCmEnergy() {
+    return craft.getCmEnergy(potential);
   }
   
   

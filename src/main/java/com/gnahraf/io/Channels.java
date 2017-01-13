@@ -6,6 +6,7 @@ package com.gnahraf.io;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
@@ -24,6 +25,24 @@ public class Channels {
   private Channels() { }
   
   
+  public static void writeToNewFile(File file, ByteBuffer buffer) throws IoRuntimeException {
+    if (file.exists())
+      throw new IllegalArgumentException("attempt to write to existing file " + file);
+    
+    if (buffer == null)
+      throw new IllegalArgumentException("null buffer");  // ..so we don't create the file
+    
+    try (ClosingStack resources = new ClosingStack()) {
+      FileChannel stream = new FileOutputStream(file).getChannel();
+      resources.push(stream);
+      
+      writeRemaining(stream, buffer);
+      
+    } catch (IOException iox) {
+      throw new IoRuntimeException(iox);
+    }
+  }
+  
   public static void writeRemaining(FileChannel file, ByteBuffer buffer) throws IOException {
     int fails = 0;
     while (fails < MAX_CONSEC_FAILS && buffer.hasRemaining()) {
@@ -39,7 +58,7 @@ public class Channels {
   
   
   
-  public static void readFully(File file, ByteBuffer buffer) {
+  public static void readFully(File file, ByteBuffer buffer) throws IoRuntimeException {
     if (!file.isFile())
       throw new NotFoundException(file.toString());
     

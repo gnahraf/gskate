@@ -7,21 +7,27 @@ package com.gnahraf.gskate.gen.le.io;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.BufferOverflowException;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.bind.JAXB;
 
-import com.gnahraf.gskate.gen.io.CraftState;
 import com.gnahraf.gskate.gen.io.CraftStateSerializer;
 import com.gnahraf.gskate.gen.le.Constraints;
+import com.gnahraf.gskate.gen.le.reg.RegularShapeTrial;
+import com.gnahraf.gskate.model.CraftState;
 import com.gnahraf.io.HashedFilepath;
 import com.gnahraf.io.IoRuntimeException;
 import com.gnahraf.io.Channels;
 import com.gnahraf.io.PathnameGenerator;
+import com.gnahraf.util.data.NormPoint;
 import com.gnahraf.xcept.NotFoundException;
 
 
@@ -39,42 +45,106 @@ public class TrialStore {
   
   public final static String STATES = "state";
   public final static String STATE_PREFIX = "s-";
+  
+  public final static String COMMANDS = "cmd";
+  public final static String REG_SHAPE_CMD_PREFIX = "c-rs-";
+  
+  public final static String TRANSFORMS = "transforms";
+  public final static String REG_SHAPE_TRANSFORM_PREFIX = "t-rs-";
 
   
   private final static CraftStateSerializer STATE_CODEC = new CraftStateSerializer();
   
+  /**
+   * The minimum trial time in milliseconds.
+   */
+  private final static int MIN_TRIAL_TIME = 1000;
   
   
   
   
-  private final File rootDir;
   private final HashedFilepath configs;
   private final HashedFilepath states;
+  private final HashedFilepath regShapeCommands;
+  private final HashedFilepath regShapeTransforms;
   
   
-//  private final PathnameGenerator configs;
 
   /**
    * 
    */
   public TrialStore(File rootDir) {
-    this.rootDir = rootDir;
-    ensureDirectory(rootDir);
-    configs = new HashedFilepath(new File(rootDir, CONFIGS), CONSTRAINTS_PREFIX, ".xml");
-    states = new HashedFilepath(new File(rootDir, STATES), STATE_PREFIX, null);
+    
+    configs =
+        new HashedFilepath(
+            new File(rootDir, CONFIGS), CONSTRAINTS_PREFIX, ".xml");
+    states =
+        new HashedFilepath(
+            new File(rootDir, STATES), STATE_PREFIX, null);
+    regShapeCommands =
+        new HashedFilepath(
+            new File(rootDir, COMMANDS),  REG_SHAPE_CMD_PREFIX, null);
+    regShapeTransforms =
+        new HashedFilepath(
+            new File(rootDir, TRANSFORMS),  REG_SHAPE_TRANSFORM_PREFIX, ".xml");
   }
   
   
   
   
-  private void ensureDirectory(File dir) {
-    if (!dir.isDirectory()) {
-      if (dir.exists())
-        throw new IllegalArgumentException("not a directory: " + dir);
-      if (!dir.mkdirs() && !dir.isDirectory())
-        throw new IllegalArgumentException("failed to create directory " + dir);
+  
+  
+  
+  public String writeRegularShapeTransform(RegularShapeTrial trial) {
+    if (trial.getTrialTime() < MIN_TRIAL_TIME)
+      throw new IllegalArgumentException("insufficient trial time " + trial.getTrialTime());
+    RegularShapeTransform.Builder transform = new RegularShapeTransform.Builder();
+    transform.config = writeConstraints(trial.getConstraints());
+    transform.startState = writeCraftState(trial.getInitState());
+    transform.endState = writeCraftState(trial.newSnapshot());
+    transform.commandSet = writeRegularShapeTrialCommandSet(trial.getCommandsReceived());
+    
+    return writeRegularShapeTransformData(transform.build());
+  }
+  
+  
+  
+  String writeRegularShapeTransformData(RegularShapeTransform transform) {
+    
+    String hash = signature(transform.getSignableContent());
+    
+    File file = regShapeTransforms.toFilepath(hash);
+    if (!file.exists())
+      JAXB.marshal(new RegularShapeTransform.Builder(transform), file);
+    
+    else {
+      RegularShapeTransform.Builder t;
+      try {
+        t = JAXB.unmarshal(file, RegularShapeTransform.Builder.class);
+      } catch (Exception x) {
+        throw new CorruptionException(file.toString(), x);
+      }
+      if (!transform.equals(t.build()))
+        throw new CorruptionException(file.toString());
+    }
+    
+    return hash;
+  }
+  
+  
+  public RegularShapeTransform readRegularShapeTransform(String id) {
+    File file = regShapeTransforms.toFilepath(id);
+    if (!file.exists())
+      throw new NotFoundException(id);
+    try {
+      RegularShapeTransform.Builder data = JAXB.unmarshal(file, RegularShapeTransform.Builder.class);
+      return data.build();
+    } catch (Exception x) {
+      throw new CorruptionException(file.toString(), x);
     }
   }
+  
+  
   
   
   
@@ -85,24 +155,33 @@ public class TrialStore {
     
     STATE_CODEC.write(state, buffer);
     buffer.flip();
+    
     String hash = signature(buffer);
     File file = states.toFilepath(hash);
     
-    if (file.exists()) {
+    if (!file.exists())
+      Channels.writeToNewFile(file, buffer);
+    
+    else {
+      // the file exists: make sure it's not corrupt
+
+      boolean fail;
       buffer.clear();
-      Channels.readFully(file, buffer);
-      buffer.flip();
-      if (!STATE_CODEC.read(buffer).equals(state))
-        throw new CorruptionException("state " + hash);
-    } else {
       try {
-        FileChannel stream = new FileOutputStream(file).getChannel();
-        Channels.writeRemaining(stream, buffer);
-        stream.close();
-      } catch (IOException iox) {
-        throw new IoRuntimeException(iox);
+        Channels.readFully(file, buffer);
+        buffer.flip();
+      
+        fail = !STATE_CODEC.read(buffer).equals(state);
+      } catch (IllegalArgumentException iax) {
+        fail = true;
+      } catch (BufferUnderflowException bux) {
+        fail = true;
       }
+      
+      if (fail)
+        throw new CorruptionException("state " + hash);
     }
+      
     return hash;
   }
   
@@ -120,6 +199,92 @@ public class TrialStore {
     buffer.flip();
     
     return STATE_CODEC.read(buffer);
+  }
+  
+  
+  
+  public String writeRegularShapeTrialCommandSet(List<NormPoint> commands) {
+    int count = commands.size();
+    ByteBuffer buffer = ByteBuffer.allocate(count * 16 + 8);
+    buffer.putInt(count);
+    for (int i = 0; i < count; ++i) {
+      NormPoint cmd = commands.get(i);
+      buffer.putDouble(cmd.x());
+      buffer.putDouble(cmd.y());
+    }
+    buffer.flip();
+    
+    String hash = signature(buffer);
+    File file = regShapeCommands.toFilepath(hash);
+    
+    if (!file.exists())
+      Channels.writeToNewFile(file, buffer);
+    
+    else {
+      // the file exists: make sure it's not corrupt
+      
+      buffer.clear();
+      
+      boolean fail;
+      try {
+        
+        Channels.readFully(file, buffer);
+        buffer.flip();
+        boolean ok = count == buffer.getInt();
+
+        for (int i = 0; ok && i < count; ++i) {
+          NormPoint cmd = commands.get(i);
+          ok &= cmd.x() == buffer.getDouble();
+          ok &= cmd.y() == buffer.getDouble();
+        }
+        
+        fail = !ok;
+      } catch (IllegalArgumentException iax) {
+        fail = true;
+      } catch (BufferUnderflowException bux) {
+        fail = true;
+      }
+      
+      if (fail)
+        throw new CorruptionException(file.toString());
+    }
+      
+    return hash;
+  }
+  
+  
+  public List<NormPoint> readRegularShapeTrialCommandSet(String id) {
+    File file = regShapeCommands.toFilepath(id);
+    if (!file.exists())
+      throw new NotFoundException("command-set " + id);
+    
+    ByteBuffer buffer = ByteBuffer.allocate((int) Math.min(1024*1024, file.length()));
+    
+    Throwable err = null;
+    try {
+      Channels.readFully(file, buffer);
+      buffer.flip();
+      
+      int count = buffer.getInt();
+      ArrayList<NormPoint> commands = new ArrayList<NormPoint>(count);
+      
+      for (int i = 0; i < count; ++i) {
+        double x = buffer.getDouble();
+        double y = buffer.getDouble();
+        commands.add(new NormPoint(x, y));
+      }
+      
+      if (buffer.hasRemaining())
+        throw new CorruptionException("file size larger than expected for command set " + id);
+      
+      return commands;
+    } catch (IllegalArgumentException iax) {
+      err = iax;
+    } catch (BufferUnderflowException bux) {
+      err = bux;
+    }
+    
+    throw new CorruptionException("command set " + id, err);
   }
   
   
@@ -176,17 +341,12 @@ public class TrialStore {
     buffer.putDouble(constraints.initKmsAboveGround);
     buffer.putDouble(constraints.maxTensileForce);
     buffer.putDouble(constraints.maxCompressiveForce);
-    buffer.putDouble(constraints.initTetherValue);
     buffer.putDouble(constraints.timeFineness);
     buffer.flip();
     return signature(buffer);
   }
   
   
-  
-  
-  
-//  public String writeState(
   
   
   

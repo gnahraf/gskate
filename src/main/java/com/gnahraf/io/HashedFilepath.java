@@ -6,9 +6,13 @@ package com.gnahraf.io;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.AbstractList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  *
@@ -87,10 +91,7 @@ public class HashedFilepath extends HashedFilename {
       
           @Override
           public String get(int index) {
-            String filename = filenames[index];
-            int start = getPrefix().length();
-            int end = filename.length() - getExtension().length();
-            return filename.substring(start, end);
+            return toHash(filenames[index]);
           }
     
           @Override
@@ -98,6 +99,32 @@ public class HashedFilepath extends HashedFilename {
             return filenames.length;
           }
         };
+  }
+  
+  
+  private boolean accept(Path path) {
+    return path.endsWith(getExtension()) && path.getFileName().startsWith(getPrefix());
+  }
+  
+  
+  private String toHash(String filename) {
+    int start = getPrefix().length();
+    int end = filename.length() - getExtension().length();
+    return filename.substring(start, end);
+  }
+  
+  
+  
+  public Stream<String> streamHashes() {
+    try {
+      return
+          Files.list(dir.toPath())
+            .filter(path -> accept(path))
+            .map(path -> toHash(path.getFileName().toString()));
+    } catch (IOException iox) {
+      throw new IoRuntimeException(iox);
+    }
+    
   }
 
 }

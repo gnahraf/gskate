@@ -5,16 +5,28 @@ package com.gnahraf.gskate.gen.le.io;
 
 
 
+
+
 /**
  *
  */
 public class TrialStoreExplorer {
+  
+  
+  private final TrialStore store;
 
+  
   /**
    * 
    */
-  public TrialStoreExplorer() {
-    // TODO Auto-generated constructor stub
+  public TrialStoreExplorer(TrialStore store) {
+    this.store = store;
+    
+    if (store == null)
+      throw new IllegalArgumentException("null store");
   }
+  
+  
+  
 
 }

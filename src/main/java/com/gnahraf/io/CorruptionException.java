@@ -1,7 +1,8 @@
 /*
  * Copyright 2017 Babak Farhang
  */
-package com.gnahraf.gskate.gen.le.io;
+package com.gnahraf.io;
+
 
 /**
  * Something's rotten.

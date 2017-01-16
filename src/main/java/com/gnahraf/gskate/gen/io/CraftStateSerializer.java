@@ -10,13 +10,14 @@ import java.nio.ByteBuffer;
 
 import com.gnahraf.gskate.model.CraftState;
 import com.gnahraf.gskate.model.Tetra;
+import com.gnahraf.io.store.Codec;
 
 /**
  * Reads and writes <tt>CraftState<tt>s to memory buffers. Suitable for serializing
  * and de-serializing to and from streams. Instances are stateless and therefore
  * safe under concurrent access.
  */
-public class CraftStateSerializer {
+public class CraftStateSerializer implements Codec<CraftState> {
   
   /**
    * 
@@ -43,6 +44,12 @@ public class CraftStateSerializer {
     long time = in.getLong();
     Tetra craft = tetraCodec.read(in);
     return new CraftState(time, craft);
+  }
+
+
+  @Override
+  public int maxBytes() {
+    return BUFFER_ALLOC_SIZE;
   }
 
 }

@@ -3,8 +3,8 @@
  */
 package com.gnahraf.gskate.gen.le.io;
 
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 
 /**
  *
@@ -30,30 +30,7 @@ public class RegularShapeTransform {
   }
   
   
-  public ByteBuffer getSignableContent() {
-    int bytes = sigAllocLength(config);
-    bytes += sigAllocLength(startState);
-    bytes += sigAllocLength(endState);
-    bytes += sigAllocLength(commandSet);
-    ByteBuffer buffer = ByteBuffer.allocate(bytes);
-    writeField(config, buffer);
-    writeField(startState, buffer);
-    writeField(endState, buffer);
-    writeField(commandSet, buffer);
-    buffer.flip();
-    return buffer;
-  }
   
-  
-  private int sigAllocLength(String field) {
-    return field.length() * 2 + 1;
-  }
-  
-  private void writeField(String field, ByteBuffer buffer) {
-    for (int i = 0; i < field.length(); ++i)
-      buffer.putChar(field.charAt(i));
-    buffer.put((byte) 0xFF);
-  }
   
   
   
@@ -96,12 +73,14 @@ public class RegularShapeTransform {
   
   
   private int hashCode(String field) {
-    return field == null ? -1 : field.hashCode();
+    return field.hashCode();
   }
   
   
   
   static class Builder {
+    
+    final static int MAX_FIELD_LENGTH = 64;
     
     public String config;
     public String startState;
@@ -129,7 +108,82 @@ public class RegularShapeTransform {
     private void checkField(String value, String name) {
       if (value == null || value.isEmpty())
         throw new IllegalStateException(name + " field not set");
+      if (value.length() > MAX_FIELD_LENGTH)
+        throw new IllegalStateException(name + " field length too long: '" + value + "'");
     }
+    
+
+    @Override
+    public final boolean equals(Object o) {
+      return this == o || o instanceof Builder && equals((Builder) o);
+    }
+    
+    
+    public final boolean equals(Builder other) {
+      if (this == other)
+        return true;
+      if (other == null)
+        return false;
+      
+      return
+          equal(startState, other.startState) &&
+          equal(endState, other.endState) &&
+          equal(config, other.config) &&
+          equal(commandSet, other.commandSet);
+    }
+    
+    
+    private boolean equal(String a, String b) {
+      return a == null ? b == null : a.equals(b);
+    }
+    
+    
+    
+    
+    @Override
+    public int hashCode() {
+      return
+          hashCode(config) ^
+          hashCode(startState) ^
+          hashCode(endState) ^
+          hashCode(commandSet);
+    }
+    
+    
+    private int hashCode(String field) {
+      return field == null ? -1 : field.hashCode();
+    }
+    
+    
+    
+    
+  }
+  
+  
+  
+  static class Encoder implements com.gnahraf.io.store.Encoder<Builder> {
+    
+    private final static int MAX_BYTES = (Builder.MAX_FIELD_LENGTH * 2 + 1) * 4;
+
+    @Override
+    public void write(Builder item, ByteBuffer dtn) throws BufferOverflowException {
+      writeField(item.config, dtn);
+      writeField(item.startState, dtn);
+      writeField(item.endState, dtn);
+      writeField(item.commandSet, dtn);
+    }
+
+    @Override
+    public int maxBytes() {
+      return MAX_BYTES;
+    }
+    
+    private void writeField(String field, ByteBuffer buffer) {
+      for (int i = 0; i < field.length(); ++i)
+        buffer.putChar(field.charAt(i));
+      buffer.put((byte) 0xFF);
+    }
+    
   }
 
 }

@@ -12,13 +12,21 @@ import com.gnahraf.xcept.NotFoundException;
 
 /**
  * Base abstraction for a simple object store.
+ * 
+ * @param T the type of data this instance manages. At minimum, this
+ *          requires that {@linkplain Object#equals(Object) Object.equals}
+ *          be properly overriden with a value-based implementation
+ *          (the base implementation is pointer-based). You might want to also override
+ *          {@linkplain Object#hashCode() Object.hashCode} (consistent with <tt>equals()</tt>)
+ *          but it's not required here for the proper functioning of an implementation.
  */
 public abstract class ObjectManager<T> {
 
 
   /**
    * Writes the given <tt>object</tt> and returns its ID. This is an idempotent
-   * operation.
+   * operation: if there's already another object in the store that equals the
+   * given <tt>object</tt>, then the existing object's ID is returned.
    * 
    * @throws IoRuntimeException in the event of an I/O error
    */
@@ -55,7 +63,8 @@ public abstract class ObjectManager<T> {
    * @param writeMapper the <tt>{@literal V -> U}</tt> converter
    * 
    * @param U           the type under the hood (at the persistence layer)
-   * @param V           the exposed type
+   * @param V           the exposed type (for sanity, do override <tt>Object.equals</tt>
+   *                    for this type, also)
    */
   public static <U, V> ObjectManager<V> map(
       final ObjectManager<U> manager,

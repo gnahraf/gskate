@@ -117,85 +117,58 @@ public class TrialStore {
   
   
   
+  
+  
+  
+  
+  public ObjectManager<Constraints> getConstraintsManager() {
+    return constraintsManager;
+  }
+
+
+
+  public ObjectManager<CraftState> getStateManager() {
+    return stateManager;
+  }
+
+
+
+  public ObjectManager<List<NormPoint>> getRegShapeCmdSetManager() {
+    return regShapeCmdSetManager;
+  }
+
+
+
+  public ObjectManager<RegularShapeTransform> getRegShapeTransformManager() {
+    return regShapeTransformManager;
+  }
+
+
+  
+  
+  
+  
+  
+  
+  
+
   public String writeRegularShapeTransform(RegularShapeTrial trial) {
+    
     if (trial.getTrialTime() < MIN_TRIAL_TIME)
       throw new IllegalArgumentException("insufficient trial time " + trial.getTrialTime());
-    RegularShapeTransform.Builder transform = new RegularShapeTransform.Builder();
-    transform.config = writeConstraints(trial.getConstraints());
-    transform.startState = writeCraftState(trial.getInitState());
-    transform.endState = writeCraftState(trial.newSnapshot());
-    transform.commandSet = writeRegularShapeTrialCommandSet(trial.getCommandsReceived());
     
-    return writeRegularShapeTransformData(transform.build());
+    RegularShapeTransform.Builder transform = new RegularShapeTransform.Builder();
+    
+    transform.config = constraintsManager.write(trial.getConstraints());
+    transform.startState = stateManager.write(trial.getInitState());
+    transform.endState = stateManager.write(trial.newSnapshot());
+    transform.commandSet = regShapeCmdSetManager.write(trial.getCommandsReceived());
+    
+    return regShapeTransformManager.write(transform.build());
   }
   
   
-  
-  String writeRegularShapeTransformData(RegularShapeTransform transform) {
-    return regShapeTransformManager.write(transform);
-  }
-  
-  
-  public RegularShapeTransform readRegularShapeTransform(String id) {
-    return regShapeTransformManager.read(id);
-  }
-  
-  
-  
-  
-  
-  public Stream<String> streamRegularShapeTransformIds() {
-    return regShapeTransformManager.streamIds();
-  }
-  
-  
-  
-  
-  
-  public String writeCraftState(CraftState state) {
-    return stateManager.write(state);
-  }
-  
-  
-  public CraftState readCraftState(String id) {
-    return stateManager.read(id);
-  }
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  public String writeRegularShapeTrialCommandSet(List<NormPoint> commands) {
-    return regShapeCmdSetManager.write(commands);
-  }
-  
-  
-  public List<NormPoint> readRegularShapeTrialCommandSet(String id) {
-    return regShapeCmdSetManager.read(id);
-  }
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  public String writeConstraints(Constraints constraints) {
-    return constraintsManager.write(constraints);
-  }
-  
-  
-  public Constraints readConstraints(String id) {
-    return constraintsManager.read(id);
-  }
+
   
   
   

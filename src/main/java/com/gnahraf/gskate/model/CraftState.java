@@ -79,6 +79,11 @@ public class CraftState {
   }
   
   
+  public double getRotationalEnergy() {
+    return craft.getRotationalEnergy();
+  }
+  
+  
   public Bob getCmBob() {
     return craft.newCmBob();
   }

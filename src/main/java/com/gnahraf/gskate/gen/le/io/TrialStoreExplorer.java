@@ -3,6 +3,10 @@
  */
 package com.gnahraf.gskate.gen.le.io;
 
+import java.util.ArrayList;
+
+import com.gnahraf.gskate.model.CraftState;
+
 
 
 
@@ -27,6 +31,15 @@ public class TrialStoreExplorer {
   }
   
   
+  
+  public void printStates() {
+    ArrayList<CraftState> states = new ArrayList<>();
+    store.getStateManager()
+      .streamObjects()
+      .forEach(states::add);
+    
+    
+  }
   
 
 }

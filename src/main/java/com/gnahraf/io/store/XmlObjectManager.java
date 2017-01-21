@@ -14,13 +14,13 @@ import com.gnahraf.io.HashedFilepath;
 
 /**
  * Stores object state in XML format. Note the hashing scheme is independent of
- * of what's written. (So it's OK, for example, to edit one of these XML files,
+ * of formatting and such. (So it's OK, for example, to edit one of these XML files,
  * as in adding comments, as long as you don't break the read-codepath.)
  * 
  * @param T a mutable struct type with public members suitable for <tt>JAXB</tt>. To
  *        bridge this mutable type to an immutable one, consider
  *        {@linkplain ObjectManager#map(ObjectManager, java.util.function.Function, java.util.function.Function) ObjectManager.map}
- *      ObjectManager#map(ObjectManager, java.util.function.Function, java.util.function.Function)
+ *
  */
 public class XmlObjectManager<T> extends HashedObjectManager<T> {
   

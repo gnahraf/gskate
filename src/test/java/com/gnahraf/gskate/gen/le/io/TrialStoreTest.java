@@ -69,9 +69,9 @@ public class TrialStoreTest extends IoTestCase {
     Constraints constraints = new Constraints();
     constraints.initTetherLength = 109;
     
-    String id = store.writeConstraints(constraints);
+    String id = store.getConstraintsManager().write(constraints);
     
-    Constraints copy = store.readConstraints(id);
+    Constraints copy = store.getConstraintsManager().read(id);
     
     assertEquals(constraints, copy);
   }
@@ -83,11 +83,11 @@ public class TrialStoreTest extends IoTestCase {
     Constraints constraints = new Constraints();
     constraints.initTetherLength = 109;
     
-    String id = store.writeConstraints(constraints);
+    String id = store.getConstraintsManager().write(constraints);
     
-    assertEquals(id, store.writeConstraints(constraints));
+    assertEquals(id, store.getConstraintsManager().write(constraints));
     
-    Constraints copy = store.readConstraints(id);
+    Constraints copy = store.getConstraintsManager().read(id);
     
     assertEquals(constraints, copy);
   }
@@ -100,17 +100,17 @@ public class TrialStoreTest extends IoTestCase {
     TrialStore store = newStore(new Object() { });
     Tetra craft = newCraft();
     CraftState input = new CraftState(1025, craft);
-    String id = store.writeCraftState(input);
-    CraftState output = store.readCraftState(id);
+    String id = store.getStateManager().write(input);
+    CraftState output = store.getStateManager().read(id);
     assertEquals(input, output);
     
     
     craft.setTetherByIndex(2, craft.getTetherByIndex(2) + .001);
     
     CraftState input2 = new CraftState(1025, craft);
-    String id2 = store.writeCraftState(input2);
+    String id2 = store.getStateManager().write(input2);
     assertNotEquals(id, id2);
-    CraftState output2 = store.readCraftState(id2);
+    CraftState output2 = store.getStateManager().read(id2);
     assertEquals(input2, output2);
     
     assertNotEquals(output, output2);
@@ -123,10 +123,10 @@ public class TrialStoreTest extends IoTestCase {
     TrialStore store = newStore(new Object() { });
     Tetra craft = newCraft();
     CraftState input = new CraftState(1025, craft);
-    String id = store.writeCraftState(input);
+    String id = store.getStateManager().write(input);
     
-    assertEquals(id, store.writeCraftState(input));
-    assertEquals(input, store.readCraftState(id));
+    assertEquals(id, store.getStateManager().write(input));
+    assertEquals(input, store.getStateManager().read(id));
   }
   
   
@@ -139,9 +139,9 @@ public class TrialStoreTest extends IoTestCase {
     commands.add(new NormPoint(0.4, 0.51));
     commands.add(new NormPoint(0.8, 0.2));
     
-    String id = store.writeRegularShapeTrialCommandSet(commands);
+    String id = store.getRegShapeCmdSetManager().write(commands);
     
-    assertEquals(commands, store.readRegularShapeTrialCommandSet(id));
+    assertEquals(commands, store.getRegShapeCmdSetManager().read(id));
   }
   
   
@@ -154,10 +154,10 @@ public class TrialStoreTest extends IoTestCase {
     commands.add(new NormPoint(0.49, 0.51));
     commands.add(new NormPoint(0.8, 0.2));
     
-    String id = store.writeRegularShapeTrialCommandSet(commands);
+    String id = store.getRegShapeCmdSetManager().write(commands);
     
-    assertEquals(id, store.writeRegularShapeTrialCommandSet(commands));
-    assertEquals(commands, store.readRegularShapeTrialCommandSet(id));
+    assertEquals(id, store.getRegShapeCmdSetManager().write(commands));
+    assertEquals(commands, store.getRegShapeCmdSetManager().read(id));
   }
   
   
@@ -173,12 +173,12 @@ public class TrialStoreTest extends IoTestCase {
     transform.commandSet = "cmds";
     
     RegularShapeTransform txf = transform.build();
-    String id = store.writeRegularShapeTransformData(txf);
-    assertEquals(txf, store.readRegularShapeTransform(id));
+    String id = store.getRegShapeTransformManager().write(txf);
+    assertEquals(txf, store.getRegShapeTransformManager().read(id));
     
     // idempotence check
-    assertEquals(id, store.writeRegularShapeTransformData(txf));
-    assertEquals(txf, store.readRegularShapeTransform(id));
+    assertEquals(id, store.getRegShapeTransformManager().write(txf));
+    assertEquals(txf, store.getRegShapeTransformManager().read(id));
   }
   
   

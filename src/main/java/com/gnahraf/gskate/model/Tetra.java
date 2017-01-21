@@ -110,6 +110,12 @@ public class Tetra {
   
   
   
+  public double getRotationalEnergy() {
+    return getKe() - getCmKe();
+  }
+  
+  
+  
   /**
    * Returns the energy I aim to maximize. We don't care whether the
    * craft is spinning (as long as it's not too fast).

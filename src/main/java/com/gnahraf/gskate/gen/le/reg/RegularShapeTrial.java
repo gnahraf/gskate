@@ -51,14 +51,7 @@ public class RegularShapeTrial {
    * 
    */
   public RegularShapeTrial(Constraints constraints) {
-    this.config = constraints.clone();
-    if (!config.isValid())
-      throw new IllegalArgumentException(config.toString());
-    this.system = new LonelyEarth(config);
-    this.controller = createController(system);
-    this.initState = newSnapshot();
-    
-    periodMillis = estimateInitPeriodMillis();
+    this(constraints, null);
   }
   
   
@@ -66,7 +59,12 @@ public class RegularShapeTrial {
     this.config = constraints.clone();
     if (!config.isValid())
       throw new IllegalArgumentException(config.toString());
-    this.system = new Simulation(new SphericalBodyPotential(), state);
+    
+    this.system =
+        state == null ?
+            new LonelyEarth(config) :
+              new Simulation(new SphericalBodyPotential(), state);
+    
     this.controller = createController(system);
     this.initState = newSnapshot();
 

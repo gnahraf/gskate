@@ -5,7 +5,9 @@ package com.gnahraf.io.store;
 
 
 import java.io.Reader;
+import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.gnahraf.io.IoRuntimeException;
@@ -69,11 +71,41 @@ public abstract class ObjectManager<T> {
   
   public abstract Stream<String> streamIds();
   
+  
+  public T readUsingPrefix(String idPrefix) throws NotFoundException, IllegalArgumentException {
+    if (idPrefix == null || idPrefix.isEmpty())
+      throw new IllegalArgumentException("empty idPrefix " + idPrefix);
+    
+    List<String> id =
+        streamIds().filter(hash -> hash.startsWith(idPrefix)).collect(Collectors.toList());
+    
+    if (id.isEmpty())
+      throw new NotFoundException(idPrefix + "..");
+    
+    if (id.size() != 1)
+      throw new IllegalArgumentException("ambiguous prefix " + idPrefix + " (" + id.size() + " matches)");
+    
+    return read(id.get(0));
+  }
+  
 
   
   public Stream<T> streamObjects() {
     return streamIds().map(hash -> read(hash));
   }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  // ---S-T-A-T-I-C---
+  
+  
+  
   
   /**
    * Maps an instance of type <tt>U</tt> to an instance of type <tt>V</tt>.

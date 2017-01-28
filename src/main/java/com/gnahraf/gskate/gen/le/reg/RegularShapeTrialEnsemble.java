@@ -11,18 +11,23 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.gnahraf.gskate.gen.le.Constraints;
 import com.gnahraf.gskate.gen.le.SimpleEquiTrial;
 import com.gnahraf.gskate.gen.le.io.TrialStore;
+import com.gnahraf.gskate.model.CraftState;
 import com.gnahraf.gskate.model.Tetra;
 import com.gnahraf.gskate.model.TetraEdge;
 import com.gnahraf.gskate.model.TetraShape;
+import com.gnahraf.main.Args;
 import com.gnahraf.print.TablePrint;
 import com.gnahraf.util.data.NormPoint;
 import com.gnahraf.util.tree.DecisionTreeProcessor;
 import com.gnahraf.util.tree.RegionProgression;
 import com.gnahraf.util.tree.TreeNode;
+import com.gnahraf.xcept.NotFoundException;
 
 /**
  * An ensemble of {@linkplain RegularShapeTrial}s characterized with 3
@@ -122,17 +127,20 @@ public class RegularShapeTrialEnsemble {
   /**
    * 
    */
-  public RegularShapeTrialEnsemble(Constraints constraints, int regions, int minRegionGap) {
+  public RegularShapeTrialEnsemble(Constraints constraints, int regions, int minRegionGap, CraftState initState) {
     this.constraints = constraints;
     this.scaledMin = constraints.steadyStateTetherLength / constraints.maxTetherLength;
     this.regions = regions;
     if (regions < 3)
       throw new IllegalArgumentException("regions " + regions);
     this.trials = new ArrayList<RegularShapeTrial>(1024);
-    this.processor = new TrialProcessor(minRegionGap);
+    this.processor = new TrialProcessor(minRegionGap, initState);
   }
   
   
+  public CraftState getInitState() {
+    return processor.initState;
+  }
   
   public void execute() {
     processor.processTree();
@@ -154,7 +162,7 @@ public class RegularShapeTrialEnsemble {
   
   
   
-  private void printSummary(RegularShapeTrial trial) {
+  private static void printSummary(RegularShapeTrial trial) {
 
     System.out.println();
     System.out.println("\tCM  energy gain: " + FORMAT.format(trial.getCmEnergyGain()) + " J");
@@ -178,7 +186,7 @@ public class RegularShapeTrialEnsemble {
   
   
   
-  private final DecimalFormat FORMAT = new DecimalFormat("#,###.##");
+  private final static DecimalFormat FORMAT = new DecimalFormat("#,###.##");
   
   
   /**
@@ -195,11 +203,19 @@ public class RegularShapeTrialEnsemble {
     
     private final int minRegionGap;
     
+    private final CraftState initState;
+    
+    
+    
 
-    public TrialProcessor(int minRegionGap) {
+    public TrialProcessor(int minRegionGap, CraftState initState) {
       super(new RegionProgression(regions, 3));
-      trialProgress.push(new RegularShapeTrial(constraints));
       this.minRegionGap = minRegionGap;
+      {
+        RegularShapeTrial protoTrial = new RegularShapeTrial(constraints, initState);
+        trialProgress.push(protoTrial);
+        this.initState = protoTrial.getInitState();
+      }
     }
     
     
@@ -305,33 +321,49 @@ public class RegularShapeTrialEnsemble {
   
   
 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  public final static String STORE = "store";
+  public final static String REGIONS = "regions";
+  public final static String INIT_STATE = "init_state";
+  public final static String MIN_REGION_GAP = "min_region_gap";
+  public final static String CONFIG = "config";
+  public final static String PLAY = "play";
+  
+  public final static String DEFAULT_STORE_PATH =
+      "data" + File.separator + "store";
+  public final static String DEFAULT_CONFIG_PATH =
+      "data" + File.separator + "configs" + File.separator + "constraints.xml";
 
   
   public static void main(String[] args) {
     
-    int regions;
-    if (args.length > 0) {
-      regions = Integer.parseInt(args[0]);
-      if (regions < 3)
-        throw new IllegalArgumentException(args[0]);
-    } else
-      regions = 4;
+    if (Args.help(args)) {
+      String[] options = { STORE, REGIONS, INIT_STATE, MIN_REGION_GAP, CONFIG, PLAY };
+      System.out.println("Reminder: options are");
+      for (String option : options)
+        System.out.println("   " + option + "=..");
+      return;
+    }
     
-    int minRegionGap = args.length > 1 ? Integer.parseInt(args[1]) : 1;
+    int regions = Args.getIntValue(args, REGIONS, 4);
+    if (regions < 3)
+      throw new IllegalArgumentException(REGIONS + "=" + regions + " < 3");
+
+    int minRegionGap = Args.getIntValue(args, MIN_REGION_GAP, 1);
     
     
     
     TrialStore store;
     {
-      String path = null;
-      for (String arg : args) {
-        if (arg.startsWith("store=")) {
-          path = arg.substring("store=".length());
-          break;
-        }
-      }
-      if (path == null || path.isEmpty())
-        path = "data/store";
+      String path = Args.getValue(args, STORE, DEFAULT_STORE_PATH);
       
       File dir = new File(path);
       
@@ -348,15 +380,7 @@ public class RegularShapeTrialEnsemble {
     
     Constraints constraints;
     {
-      String path = null;
-      for (String arg : args) {
-        if (arg.startsWith("constraints=")) {
-          path = arg.substring("constraints=".length());
-          break;
-        }
-      }
-      if (path == null || path.isEmpty())
-        path = "data" + File.separator + "configs" + File.separator + "constraints.xml";
+      String path = Args.getValue(args, CONFIG, DEFAULT_CONFIG_PATH);
       
       File file = new File(path);
       if (!file.exists()) {
@@ -384,9 +408,43 @@ public class RegularShapeTrialEnsemble {
       }
     }
     
-    RegularShapeTrialEnsemble instance = new RegularShapeTrialEnsemble(constraints, regions, minRegionGap);
     
-    System.out.println("Executing over " + regions + " regions with at least " + minRegionGap + " regions between decisions");
+    CraftState initState;
+    {
+      String hashPrefix = Args.getValue(args, INIT_STATE, null);
+      if (hashPrefix == null)
+        initState = null;
+      else
+        initState = store.getStateManager().readUsingPrefix(hashPrefix);
+    }
+    
+    {
+      String commandSetPlay = Args.getValue(args, PLAY, null);
+      if (commandSetPlay != null) {
+
+        List<NormPoint> commands = store.getRegShapeCmdSetManager().readUsingPrefix(commandSetPlay);
+        
+        RegularShapeTrial trial = new RegularShapeTrial(constraints, initState);
+        for (NormPoint orbitalPoint : commands) {
+          System.out.println("Executing " + orbitalPoint);
+          trial.runToOrbitalPoint(orbitalPoint);
+        }
+        System.out.println("Running to completion of orbit..");
+        trial.runToCompleteOrbit();
+        printSummary(trial);
+        String entry = store.writeRegularShapeTransform(trial);
+        System.out.println("\tDB entry " + entry);
+        return;
+      }
+    }
+    
+    RegularShapeTrialEnsemble instance =
+        new RegularShapeTrialEnsemble(constraints, regions, minRegionGap, initState);
+    
+    System.out.println(
+        "Executing over " + regions + " regions with at least " + minRegionGap +
+        " regions between decisions");
+    System.out.println("Init state " + store.getStateManager().getId(instance.getInitState()));
     System.out.println();
     
     instance.execute();
@@ -403,7 +461,7 @@ public class RegularShapeTrialEnsemble {
     for (RegularShapeTrial trial : trials) {
       System.out.println();
       System.out.println(++i + ".\t" + trial.getCommandsReceived());
-      instance.printSummary(trial);
+      printSummary(trial);
     }
     
     int countDown = Math.min(trials.size(), 5 + trials.size() / 5);
@@ -421,7 +479,7 @@ public class RegularShapeTrialEnsemble {
       RegularShapeTrial trial = trials.get(trials.size() - i);
       System.out.println();
       System.out.println(i + ".\t" + trial.getCommandsReceived());
-      instance.printSummary(trial);
+      printSummary(trial);
       if (store != null) {
         String entry = store.writeRegularShapeTransform(trial);
         System.out.println("\tDB entry " + entry);

@@ -6,7 +6,6 @@ package com.gnahraf.gskate.gen.le.io;
 
 import static com.gnahraf.print.Semantic.plural;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -14,12 +13,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import com.gnahraf.gskate.gen.StateComparators;
-import com.gnahraf.gskate.gen.le.Constraints;
 import com.gnahraf.gskate.model.CraftState;
 import com.gnahraf.gskate.model.Potential;
 import com.gnahraf.gskate.model.SphericalBodyPotential;
@@ -27,7 +24,6 @@ import com.gnahraf.gskate.model.TetraEdge;
 import com.gnahraf.gskate.model.TetraShape;
 import com.gnahraf.io.IoRuntimeException;
 import com.gnahraf.io.store.ObjectManager;
-import com.gnahraf.io.store.XmlObjectManager;
 import com.gnahraf.main.Args;
 import com.gnahraf.print.TablePrint;
 import com.gnahraf.util.data.NormPoint;

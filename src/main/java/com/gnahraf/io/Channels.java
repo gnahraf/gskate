@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
@@ -25,6 +24,7 @@ public class Channels {
   private Channels() { }
   
   
+  @SuppressWarnings("resource")
   public static void writeToNewFile(File file, ByteBuffer buffer) throws IoRuntimeException {
     if (file.exists())
       throw new IllegalArgumentException("attempt to write to existing file " + file);
@@ -58,6 +58,7 @@ public class Channels {
   
   
   
+  @SuppressWarnings("resource")
   public static void readFully(File file, ByteBuffer buffer) throws IoRuntimeException {
     if (!file.isFile())
       throw new NotFoundException(file.toString());

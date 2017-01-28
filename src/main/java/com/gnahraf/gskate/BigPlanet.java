@@ -24,7 +24,7 @@ public class BigPlanet {
    */
   private volatile double tetheredAccel;
   
-  private ArrayList<AnimationListener> listeners = new ArrayList();
+  private ArrayList<AnimationListener> listeners = new ArrayList<>();
   
   private final double baseEnergy;
   

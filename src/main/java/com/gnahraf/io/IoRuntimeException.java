@@ -10,13 +10,13 @@ import java.io.IOException;
 /**
  * An <tt>IOException</tt> cast as an unchecked <tt>RuntimeException</tt>.
  */
+@SuppressWarnings("serial")
 public class IoRuntimeException extends RuntimeException {
 
   /**
    * 
    */
   public IoRuntimeException() {
-    // TODO Auto-generated constructor stub
   }
 
   /**
@@ -24,7 +24,6 @@ public class IoRuntimeException extends RuntimeException {
    */
   public IoRuntimeException(String message) {
     super(message);
-    // TODO Auto-generated constructor stub
   }
 
   /**
@@ -32,7 +31,6 @@ public class IoRuntimeException extends RuntimeException {
    */
   public IoRuntimeException(IOException cause) {
     super(cause);
-    // TODO Auto-generated constructor stub
   }
 
   /**
@@ -41,7 +39,6 @@ public class IoRuntimeException extends RuntimeException {
    */
   public IoRuntimeException(String message, IOException cause) {
     super(message, cause);
-    // TODO Auto-generated constructor stub
   }
 
   /**

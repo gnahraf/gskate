@@ -247,7 +247,6 @@ public class SimpleEquiTrialEnsemble {
     Collections.sort(trials, new TrialComparator());
     
     DecimalFormat FORMAT = new DecimalFormat("#,###.#");
-    int i = 0;
     
     int countDown = Math.min(10, trials.size());
 

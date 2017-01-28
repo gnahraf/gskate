@@ -16,7 +16,6 @@ import org.junit.Test;
 import com.gnahraf.gskate.gen.le.Constraints;
 import com.gnahraf.gskate.model.CraftState;
 import com.gnahraf.gskate.model.Tetra;
-import com.gnahraf.gskate.model.TetraTest;
 import com.gnahraf.test.IoTestCase;
 import com.gnahraf.util.data.NormPoint;
 

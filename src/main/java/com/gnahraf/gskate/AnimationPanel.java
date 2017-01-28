@@ -12,7 +12,6 @@ import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
@@ -24,6 +23,7 @@ import com.gnahraf.gskate.BigPlanet.AnimationListener;
 /**
  *
  */
+@SuppressWarnings("serial")
 public class AnimationPanel extends JPanel implements BigPlanet.AnimationListener {
   
   private final BigPlanet system;

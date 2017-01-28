@@ -5,7 +5,6 @@ package com.gnahraf.gskate.gen.io;
 
 
 import static com.gnahraf.gskate.model.TetraTest.*;
-import static org.junit.Assert.*;
 
 import java.nio.ByteBuffer;
 

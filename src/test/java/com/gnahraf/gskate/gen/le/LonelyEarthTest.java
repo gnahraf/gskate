@@ -1,13 +1,10 @@
 package com.gnahraf.gskate.gen.le;
 
-import static org.junit.Assert.*;
 
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
 
 import org.junit.Test;
 
-import com.gnahraf.gskate.gen.le.LonelyEarth;
 import com.gnahraf.gskate.model.Bob;
 import com.gnahraf.gskate.model.Constants;
 import com.gnahraf.gskate.model.Tetra;

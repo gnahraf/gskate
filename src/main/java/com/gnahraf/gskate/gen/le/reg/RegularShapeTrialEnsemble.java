@@ -7,15 +7,11 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.gnahraf.gskate.gen.le.Constraints;
-import com.gnahraf.gskate.gen.le.SimpleEquiTrial;
 import com.gnahraf.gskate.gen.le.io.TrialStore;
 import com.gnahraf.gskate.model.CraftState;
 import com.gnahraf.gskate.model.Tetra;
@@ -26,8 +22,6 @@ import com.gnahraf.print.TablePrint;
 import com.gnahraf.util.data.NormPoint;
 import com.gnahraf.util.tree.DecisionTreeProcessor;
 import com.gnahraf.util.tree.RegionProgression;
-import com.gnahraf.util.tree.TreeNode;
-import com.gnahraf.xcept.NotFoundException;
 
 /**
  * An ensemble of {@linkplain RegularShapeTrial}s characterized with 3
@@ -511,8 +505,8 @@ public class RegularShapeTrialEnsemble {
       double cmDiff = aCmE - bCmE;
       
       if (Math.abs(cmDiff) < 1 || Math.abs(aCmE / cmDiff) > SWAMP_FACTOR && Math.abs(bCmE / cmDiff) > SWAMP_FACTOR) {
-        double aRotE = a.getRotationalEnergyGain();
-        double bRotE = b.getRotationalEnergyGain();
+//        double aRotE = a.getRotationalEnergyGain();
+//        double bRotE = b.getRotationalEnergyGain();
         
         double rotDiff = a.getRotationalEnergy() - b.getRotationalEnergy();
         if (Math.abs(rotDiff) > 2) {

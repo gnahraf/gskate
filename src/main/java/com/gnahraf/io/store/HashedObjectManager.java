@@ -60,6 +60,23 @@ public abstract class HashedObjectManager<T> extends ObjectManager<T> {
     
     return hash;
   }
+  
+  
+  
+  @Override
+  public String getId(T object) {
+    ByteBuffer buffer = allocateBuffer(encoder.maxBytes());
+    encoder.write(object, buffer);
+    buffer.flip();
+    
+    return signature(buffer);
+  }
+
+
+  @Override
+  public boolean containsId(String id) {
+    return hashedPath.toFilepath(id).exists();
+  }
 
 
   @Override
@@ -69,6 +86,12 @@ public abstract class HashedObjectManager<T> extends ObjectManager<T> {
       throw new NotFoundException(hash);
     
     return readObjectFile(file);
+  }
+  
+  
+  
+  protected final File getFilepath(String hash) {
+    return hashedPath.toFilepath(hash);
   }
   
   

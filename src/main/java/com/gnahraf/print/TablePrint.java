@@ -72,7 +72,7 @@ public class TablePrint extends PrintSupport {
     if (cells.length > columnWidths.length)
       throw new IllegalArgumentException("too many args: " + Arrays.asList(cells));
     
-    for (int index = 0; index < cells.length; ++index) {
+    for (int index = 0, cursor = 0; index < cells.length; ++index) {
       Object cell = cells[index];
       String string;
       if (cell instanceof Number)
@@ -82,7 +82,10 @@ public class TablePrint extends PrintSupport {
       else
         string = cell.toString();
       print(string);
-      printSpaces(columnWidths[index] - string.length());
+      cursor += columnWidths[index];
+      boolean padded = padToColumn(cursor);
+      if (!padded)
+        printSpaces(1);
     }
     println();
   }

@@ -6,7 +6,6 @@ package com.gnahraf.gskate.gen.le.io;
 
 import java.io.File;
 import java.util.List;
-import java.util.stream.Stream;
 
 import javax.xml.bind.JAXB;
 
@@ -50,9 +49,44 @@ public class TrialStore {
    * The minimum trial time in milliseconds.
    */
   private final static int MIN_TRIAL_TIME = 1000;
+
+  
+  
+  /**
+   * Loads an already existing store.
+   */
+  public static TrialStore load(String rootDir) {
+    return load(new File(rootDir));
+  }
+  
+  /**
+   * Loads an already existing store.
+   */
+  public static TrialStore load(File rootDir) {
+    if (!rootDir.isDirectory())
+      throw new NotFoundException(rootDir.toString());
+    return new TrialStore(rootDir);
+  }
+
   
   
   
+  /**
+   * Creates a new store. <tt>rootDir</tt> must not exist.
+   */
+  public static TrialStore create(String rootDir) throws IllegalStateException {
+    return create(new File(rootDir));
+  }
+  
+  /**
+   * Creates a new store. <tt>rootDir</tt> must not exist.
+   */
+  public static TrialStore create(File rootDir) throws IllegalStateException {
+    if (rootDir.exists())
+      throw new IllegalStateException("already exists " + rootDir);
+    
+    return new TrialStore(rootDir);
+  }
   
   
   
@@ -69,6 +103,10 @@ public class TrialStore {
   private final ObjectManager<List<NormPoint>> regShapeCmdSetManager;
   private final ObjectManager<RegularShapeTransform> regShapeTransformManager;
   
+  
+  public TrialStore(String rootDir) {
+    this(new File(rootDir));
+  }
   
 
   /**

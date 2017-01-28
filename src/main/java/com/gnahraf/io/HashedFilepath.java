@@ -20,7 +20,6 @@ import java.util.stream.Stream;
 public class HashedFilepath extends HashedFilename {
   
   private final File dir;
-  private final FilenameFilter filter;
 
   
   /**
@@ -40,7 +39,6 @@ public class HashedFilepath extends HashedFilename {
   public HashedFilepath(File dir, String prefix, String extension, boolean ensureDirectory) {
     super(prefix, extension);
     this.dir = dir;
-    this.filter = super.getFilenameFilter();
     if (dir == null)
       throw new IllegalArgumentException("dir " + dir);
     if (ensureDirectory && !dir.isDirectory()) {
@@ -67,13 +65,6 @@ public class HashedFilepath extends HashedFilename {
   
   
   
-  @Override
-  public FilenameFilter getFilenameFilter() {
-    return filter;
-  }
-  
-  
-  
   public final File getDirectory() {
     return dir;
   }
@@ -82,7 +73,7 @@ public class HashedFilepath extends HashedFilename {
   
   public List<String> listHashes() {
     
-    final String[] filenames = dir.list(filter);
+    final String[] filenames = dir.list(getFilenameFilter());
     if (filenames == null || filenames.length == 0)
       return Collections.emptyList();
     
@@ -102,8 +93,12 @@ public class HashedFilepath extends HashedFilename {
   }
   
   
+  // FIXME: make me private
   private boolean accept(Path path) {
-    return path.endsWith(getExtension()) && path.getFileName().startsWith(getPrefix());
+    String filename = path.getFileName().toString();
+    boolean ok = filename.endsWith(getExtension());
+    ok &= filename.startsWith(getPrefix());
+    return ok;
   }
   
   

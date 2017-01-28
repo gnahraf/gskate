@@ -247,11 +247,13 @@ public class Tetra {
       throw new IllegalArgumentException(seconds + ", " + timeFineness);
     int runs = (int) (seconds / timeFineness);
     for (int i = 0; i < runs; ++i) {
+      potential.update(timeFineness);
       updateForces(potential);
       animateDeltaT(timeFineness);
     }
     seconds -= (runs * timeFineness);
     if (seconds > 0) {
+      potential.update(seconds);
       updateForces(potential);
       animateDeltaT(seconds);
     }

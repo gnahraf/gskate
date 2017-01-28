@@ -5,12 +5,17 @@ package com.gnahraf.io.store;
 
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.nio.ByteBuffer;
 
 import javax.xml.bind.JAXB;
 
 import com.gnahraf.io.CorruptionException;
 import com.gnahraf.io.HashedFilepath;
+import com.gnahraf.xcept.NotFoundException;
 
 /**
  * Stores object state in XML format. Note the hashing scheme is independent of
@@ -60,6 +65,26 @@ public class XmlObjectManager<T> extends HashedObjectManager<T> {
     boolean fail = !object.equals(readObjectFile(file));
     if (fail)
       throw new CorruptionException(file.toString());
+  }
+  
+  
+  
+  @Override
+  public boolean hasReader() {
+    return true;
+  }
+  
+  
+  /**
+   * Returns the XML representation of the thing.
+   */
+  @Override
+  public Reader getReader(String hash) throws NotFoundException {
+    try {
+      return new FileReader(getFilepath(hash));
+    } catch (FileNotFoundException fnfx) {
+      throw new NotFoundException(hash, fnfx);
+    }
   }
 
 }

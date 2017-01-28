@@ -4,12 +4,12 @@
 package com.gnahraf.gskate.model;
 
 /**
- *
+ * The simplest of potentials.
  */
 public class SphericalBodyPotential extends Potential {
   
   /**
-   * 
+   * Mass times gravitational constant G.
    */
   private final double g;
   
@@ -21,6 +21,7 @@ public class SphericalBodyPotential extends Potential {
   
   /**
    * Default constructor makes an earth-mass body.
+   * Don't change this, o.w. it'll break repeatibility of trials.
    */
   public SphericalBodyPotential() {
     this(Constants.EARTH_MASS);
@@ -70,6 +71,13 @@ public class SphericalBodyPotential extends Potential {
   public double pe(Bob bob) {
     return -g / bob.distance(x, y, z);
   }
+  
+  
+  /**
+   * Noop. Machinery for this to be developed elsewhere.
+   */
+  @Override
+  public void update(double seconds) {  }
   
   
   public double getG() {

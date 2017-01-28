@@ -37,10 +37,18 @@
         <version>1.10</version>
         <configuration>
           <programs>
+          
             <program>
               <mainClass>com.gnahraf.gskate.gen.le.reg.RegularShapeTrialEnsemble</mainClass>
               <id>regorbit</id>
             </program>
+          
+            <program>
+              <mainClass>com.gnahraf.gskate.gen.le.io.TrialStoreExplorer</mainClass>
+              <id>storex</id>
+            </program>
+            
+            
           </programs>
         </configuration>
       </plugin>

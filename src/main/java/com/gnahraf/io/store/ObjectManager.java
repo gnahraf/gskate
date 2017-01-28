@@ -4,6 +4,7 @@
 package com.gnahraf.io.store;
 
 
+import java.io.Reader;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -33,6 +34,18 @@ public abstract class ObjectManager<T> {
   public abstract String write(T object) throws IoRuntimeException;
   
   
+  
+  /**
+   * Computes and return the ID of the given <tt>object</tt>.
+   * (I can't decide whether the object <em>has</em> to exist in the
+   * store--my current implementation doesn't care.)
+   */
+  public abstract String getId(T object);
+  
+  
+  public abstract boolean containsId(String id);
+  
+  
   /**
    * Reads and returns a previously written object.
    * 
@@ -42,6 +55,16 @@ public abstract class ObjectManager<T> {
    * @throws IoRuntimeException in the event of an I/O error
    */
   public abstract T read(String id) throws NotFoundException, IoRuntimeException;
+  
+  
+  public boolean hasReader() {
+    return false;
+  }
+  
+  
+  public Reader getReader(String id) throws NotFoundException, UnsupportedOperationException {
+    throw new UnsupportedOperationException();
+  }
   
   
   public abstract Stream<String> streamIds();
@@ -85,6 +108,13 @@ public abstract class ObjectManager<T> {
             U u = writeMapper.apply(object);
             return manager.write(u);
           }
+          
+          
+          @Override
+          public String getId(V object) {
+            U u = writeMapper.apply(object);
+            return manager.getId(u);
+          }
 
           @Override
           public V read(String id) {
@@ -95,6 +125,24 @@ public abstract class ObjectManager<T> {
           @Override
           public Stream<String> streamIds() {
             return manager.streamIds();
+          }
+
+
+          @Override
+          public boolean hasReader() {
+            return manager.hasReader();
+          }
+
+
+          @Override
+          public Reader getReader(String id) throws NotFoundException, UnsupportedOperationException {
+            return manager.getReader(id);
+          }
+          
+          
+          @Override
+          public boolean containsId(String id) {
+            return manager.containsId(id);
           }
         };
   }

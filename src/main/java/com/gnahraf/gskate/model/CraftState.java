@@ -79,6 +79,11 @@ public class CraftState {
   }
   
   
+  public double getPe(Potential potential) {
+    return craft.getPe(potential);
+  }
+  
+  
   public double getRotationalEnergy() {
     return craft.getRotationalEnergy();
   }

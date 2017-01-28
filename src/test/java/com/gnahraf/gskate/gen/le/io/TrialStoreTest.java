@@ -9,6 +9,7 @@ import static com.gnahraf.gskate.model.TetraTest.*;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 
@@ -127,6 +128,29 @@ public class TrialStoreTest extends IoTestCase {
     
     assertEquals(id, store.getStateManager().write(input));
     assertEquals(input, store.getStateManager().read(id));
+  }
+  
+  
+  @Test
+  public void testStreamStates() {
+    TrialStore store = newStore(new Object() { });
+    Tetra craft = newCraft();
+    CraftState input = new CraftState(1025, craft);
+    String id = store.getStateManager().write(input);
+    
+    
+    craft.setTetherByIndex(2, craft.getTetherByIndex(2) + .001);
+    
+    CraftState input2 = new CraftState(1025, craft);
+    String id2 = store.getStateManager().write(input2);
+    
+    Stream<String> idStream = store.getStateManager().streamIds();
+    ArrayList<String> ids = new ArrayList<String>();
+    
+    idStream.forEach(ids::add);
+    assertEquals(2, ids.size());
+    assertTrue(ids.contains(id));
+    assertTrue(ids.contains(id2));
   }
   
   

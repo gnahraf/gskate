@@ -19,6 +19,11 @@ public abstract class TreeNode {
   }
   
   
+  /**
+   * Returns the child at the given <tt>index</tt>. For a large tree, an implementation
+   * ought create the returned node on demand on not maintain a reference a to it; o.w.
+   * you might run out of memory.
+   */
   public abstract TreeNode child(int index) throws IndexOutOfBoundsException;
   
   /**

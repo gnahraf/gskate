@@ -121,14 +121,22 @@ public class RegularShapeTrialEnsemble {
   /**
    * 
    */
-  public RegularShapeTrialEnsemble(Constraints constraints, int regions, int minRegionGap, CraftState initState) {
+  public RegularShapeTrialEnsemble(
+      Constraints constraints,
+      int regions,
+      int minRegionGap,
+      int startRegion,
+      int endRegion,
+      CraftState initState) {
+    
+    
     this.constraints = constraints;
     this.scaledMin = constraints.steadyStateTetherLength / constraints.maxTetherLength;
     this.regions = regions;
     if (regions < 3)
       throw new IllegalArgumentException("regions " + regions);
     this.trials = new ArrayList<RegularShapeTrial>(1024);
-    this.processor = new TrialProcessor(minRegionGap, initState);
+    this.processor = new TrialProcessor(minRegionGap, startRegion, endRegion, initState);
   }
   
   
@@ -196,58 +204,134 @@ public class RegularShapeTrialEnsemble {
     private final double normalizedRegionDuration = 1.0 / regions;
     
     private final int minRegionGap;
+    private final int startRegion;
+    private final int endRegion;
     
     private final CraftState initState;
+    
+    private final boolean firstEver;
     
     
     
 
-    public TrialProcessor(int minRegionGap, CraftState initState) {
-      super(new RegionProgression(regions, 3));
+    public TrialProcessor(int minRegionGap, int startRegion, int endRegion, CraftState initState) {
+      super(new RegionProgression(regions, 4));
       this.minRegionGap = minRegionGap;
+      this.startRegion = startRegion;
+      this.endRegion = endRegion;
       {
         RegularShapeTrial protoTrial = new RegularShapeTrial(constraints, initState);
         trialProgress.push(protoTrial);
         this.initState = protoTrial.getInitState();
       }
+      this.firstEver = initState == null;
+      
+      if (minRegionGap < 1)
+        throw new IllegalArgumentException("minRegionGap " + minRegionGap);
+      if (startRegion < 0)
+        throw new IllegalArgumentException("startRegion " + startRegion);
+      if (endRegion >= regions)
+        throw new IllegalArgumentException("endRegion " + endRegion + " >= regions " + regions);
+      if (endRegion - startRegion + 1 < minRegionGap * 3)
+        throw new IllegalArgumentException("endRegion - startRegion + 1 < minRegionGap x 3");
     }
     
     
 
+    /**
+     * Commands vs time (expressed in orbital region units) depicted below.
+     * <pre>
+     * 
+     *  
+     *                      2             3
+     *                        o . . . . o
+     *                      .             .
+     *                    .                .
+     *                  .                   .
+     *                .                      .
+     *  o . . . . . o                         o . .
+     *  0             1                     4
+     *  
+     * </pre>
+     * 
+     * Each label corresponds to the node level in the decision tree.
+     * The zero'th label represents the initial state and thus does not
+     * represent a command. 
+     */
     @Override
     protected boolean processNode(RegionProgression node) {
       int level = node.level();
       if (level < 1 || level > trialProgress.size())
-        throw new RuntimeException("Assertion failed. level " + level + "; node " + node + "; stack " + trialProgress);
+        throw new RuntimeException(
+            "Assertion failed. level " + level + "; node " + node + "; stack " + trialProgress);
+
+      if (level > 1 && minRegionGap > node.region() - node.parent().region())
+        return false;
       
+      if ((4 - level) * minRegionGap > endRegion - node.region())
+        return false;
+      
+      if (node.region() < startRegion || node.region() > endRegion)
+        return false;
+      
+      if (level == 1 && firstEver && node.region() > 0)
+        return false;
+      
+      RegularShapeTrial lastTrial = null;
       while (level < trialProgress.size())
-        trialProgress.pop();
+        lastTrial = trialProgress.pop();
       
-      RegularShapeTrial trial = new RegularShapeTrial(trialProgress.peek());
-      trialProgress.push(trial);
-      
+      RegularShapeTrial trial = null;
       NormPoint command;
+      
       {
         double normalizedTime = normalizedRegionDuration * (1 + node.region());
         double normalizedEdgeLength;
         
         switch (level) {
         case 1:
+          normalizedEdgeLength = scaledMin;
+          if (node.region() > 0 && lastTrial != null)
+            trial = lastTrial;
+          break;
         case 2:
           normalizedEdgeLength = SCALED_MAX;
           break;
         case 3:
+          normalizedEdgeLength = SCALED_MAX;
+          if (node.region() - node.parent().region() > 1 && lastTrial != null)
+            trial = lastTrial;
+          break;
+        case 4:
           normalizedEdgeLength = scaledMin;
           break;
         default:
           throw new RuntimeException("Assertion failed. level " + level);
         }
+        
+
+        if (trial == null)
+          trial = new RegularShapeTrial(trialProgress.peek());
+        else {
+          int lastIndex = trial.getCommandsReceived().size() - 1;
+          
+          if (lastIndex < 0)
+            throw new RuntimeException(
+                "Assertion failed: empty command-set at level " + level +
+                "; node " + node + "; stack " + trialProgress);
+          
+          trial.getCommandsReceived().remove(lastIndex);
+        }
+        
         command = new NormPoint(normalizedTime, normalizedEdgeLength);
       }
+
       
-      if (minRegionGap > node.region() - node.parent().region() || (3 - level) * minRegionGap > regions - node.region() - 1) {
-        return false;
-      }
+      
+      
+
+      trialProgress.push(trial);
+      
       {
         ArrayList<Integer> regionStack = new ArrayList<>();
         for (RegionProgression n = node; !n.isRoot(); n = n.parent())
@@ -255,13 +339,25 @@ public class RegularShapeTrialEnsemble {
         print("Executing level " + level + ", region " + node.region() + " - " + regionStack);
       }
       
+      
+      
       if (! trial.runToOrbitalPoint(command) ) {
         printBackout(node, trial);
         return false;
       }
       
       if (node.isLeaf()) {
+
         print("Maneuver completed.");
+        // stabilize..
+        {
+          double normalizedTime = Math.min(1.0, normalizedRegionDuration * (2 + node.region()));
+          NormPoint hold = new NormPoint(normalizedTime, scaledMin);
+          if (!trial.runToOrbitalPoint(hold)) {
+            printBackout(node, trial);
+            return false;
+          }
+        }
         
         if (trial.getCmEnergyGain() < 0) {
           print("..but CM energy gain is negative (" + FORMAT.format(trial.getCmEnergyGain()) + " J) so not pursuing..");
@@ -275,12 +371,12 @@ public class RegularShapeTrialEnsemble {
           return false;
         }
 
-        print("Holding shape until completion of orbit");
-        trial.newSnapshot();
-        if (! trial.runToCompleteOrbit() ) {
-          printBackout(node, trial);
-          return false;
-        }
+//        print("Holding shape until completion of orbit");
+//        trial.newSnapshot();
+//        if (! trial.runToCompleteOrbit() ) {
+//          printBackout(node, trial);
+//          return false;
+//        }
         
         trials.add(trial);
         print("Trial completed.");
@@ -328,6 +424,8 @@ public class RegularShapeTrialEnsemble {
   public final static String REGIONS = "regions";
   public final static String INIT_STATE = "init_state";
   public final static String MIN_REGION_GAP = "min_region_gap";
+  public final static String START_REGION = "start_region";
+  public final static String END_REGION = "end_region";
   public final static String CONFIG = "config";
   public final static String PLAY = "play";
   
@@ -340,7 +438,7 @@ public class RegularShapeTrialEnsemble {
   public static void main(String[] args) {
     
     if (Args.help(args)) {
-      String[] options = { STORE, REGIONS, INIT_STATE, MIN_REGION_GAP, CONFIG, PLAY };
+      String[] options = { STORE, REGIONS, INIT_STATE, MIN_REGION_GAP,START_REGION, END_REGION, CONFIG, PLAY };
       System.out.println("Reminder: options are");
       for (String option : options)
         System.out.println("   " + option + "=..");
@@ -352,6 +450,9 @@ public class RegularShapeTrialEnsemble {
       throw new IllegalArgumentException(REGIONS + "=" + regions + " < 3");
 
     int minRegionGap = Args.getIntValue(args, MIN_REGION_GAP, 1);
+    
+    int startRegion = Args.getIntValue(args, START_REGION, 0);
+    int endRegion = Args.getIntValue(args, END_REGION, regions - 1);
     
     
     
@@ -423,8 +524,6 @@ public class RegularShapeTrialEnsemble {
           System.out.println("Executing " + orbitalPoint);
           trial.runToOrbitalPoint(orbitalPoint);
         }
-        System.out.println("Running to completion of orbit..");
-        trial.runToCompleteOrbit();
         printSummary(trial);
         String entry = store.writeRegularShapeTransform(trial);
         System.out.println("\tDB entry " + entry);
@@ -433,7 +532,7 @@ public class RegularShapeTrialEnsemble {
     }
     
     RegularShapeTrialEnsemble instance =
-        new RegularShapeTrialEnsemble(constraints, regions, minRegionGap, initState);
+        new RegularShapeTrialEnsemble(constraints, regions, minRegionGap, startRegion, endRegion, initState);
     
     System.out.println(
         "Executing over " + regions + " regions with at least " + minRegionGap +

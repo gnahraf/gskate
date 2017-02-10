@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.gnahraf.gskate.gen.StateComparators;
@@ -62,9 +63,7 @@ public class TrialStoreExplorer {
   
   public void printStates(int maxCount) {
     Comparator<CraftState> order =
-        Collections.reverseOrder(
-            StateComparators.newCmEnergyComparator(
-                new SphericalBodyPotential()));
+        StateComparators.newCmEnergyComparator(new SphericalBodyPotential());
     
     printStates(order, maxCount);
   }
@@ -114,7 +113,7 @@ public class TrialStoreExplorer {
     tablePrint.printHorizontalTableEdge('-');
     tablePrint.printRow("CM energy (J):", null, state.getCmEnergy(earth));
     tablePrint.printRow("PE (J):", null, state.getPe(earth));
-    tablePrint.printRow("Rotational Energy (J):", null, state.getRotationalEnergy());
+    tablePrint.printRow("Spin Energy (J):", null, state.getRotationalEnergy());
     tablePrint.printRow("Time (s):", null, state.getTime() / 1000);
     tablePrint.printHorizontalTableEdge('-');
     
@@ -128,6 +127,71 @@ public class TrialStoreExplorer {
     
     tablePrint.printHorizontalTableEdge('=');
     tablePrint.println();
+  }
+  
+  
+  public void printAboutState(String hashPrefix) {
+    ObjectManager<CraftState> stateMgr = store.getStateManager();
+    
+    if (stateMgr.containsId(hashPrefix))
+      printAbout(stateMgr.read(hashPrefix));
+    
+    else
+      stateMgr.streamIds().filter(hash -> hash.startsWith(hashPrefix))
+        .forEach(hash -> printAbout(stateMgr.read(hash)));
+    
+  }
+  
+  public void printAbout(CraftState state) {
+    printState(state);
+    String id = store.getStateManager().getId(state);
+    List<RegularShapeTransform> transform =
+        store.getRegShapeTransformManager().streamObjects()
+            .filter(t -> t.endState.equals(id)).collect(Collectors.toList());
+    if (transform.isEmpty()) {
+      System.out.println("Don't know much else about this state.");
+      return;
+    }
+    if (transform.size() > 1) {
+      System.err.println("Woa.. this is crazy (" + transform + ") " + id);
+      System.exit(1);
+    }
+
+    System.out.println("Provenance:");
+    System.out.println("==========");
+    System.out.println();
+    System.out.println("the transform..");
+    System.out.println();
+    RegularShapeTransform t = transform.get(0);
+    printTransform(store.getRegShapeTransformManager().getId(t));
+    System.out.println();
+    System.out.println("the command-set in the tranform..");
+    System.out.println();
+    printCommandSet(t.commandSet);
+    System.out.println();
+    System.out.println("the configuration in the transform..");
+    System.out.println();
+    printConfig(t.config);
+    CraftState predecessor = store.getStateManager().read(t.startState);
+    SphericalBodyPotential earth = new SphericalBodyPotential();
+    
+    double cmEnergyGain = state.getCmEnergy(earth) - predecessor.getCmEnergy(earth);
+    double rotEnergyGain = state.getRotationalEnergy() - predecessor.getRotationalEnergy();
+    TablePrint table = new TablePrint(24, 24);
+    table.setIndentation(8);
+    table.printHorizontalTableEdge('_');
+    table.printRow("CM Energy gain (J)", cmEnergyGain);
+    table.printRow("Spin energy gain (J)", rotEnergyGain);
+    table.printHorizontalTableEdge('-');
+    System.out.println();
+    System.out.println("and about the predecessor state");
+    table.printRow(null, "|");
+    table.printRow(null, "|");
+    table.printRow(null, "|");
+    table.printRow(null, "|");
+    table.printRow(null, "V");
+    System.out.println();
+    printAbout(predecessor);
   }
   
   
@@ -280,6 +344,7 @@ public class TrialStoreExplorer {
   
   public final static String LIST_STATES_CMD = "list_states";
   public final static String PRINT_STATE_CMD = "print_state";
+  public final static String ABOUT_STATE_CMD = "about_state";
   public final static String LIST_CONFIFS_CMD = "list_configs";
   public final static String PRINT_CONFIG_CMD = "print_config";
   public final static String LIST_TRANSFORMS_CMD = "list_transforms";
@@ -301,6 +366,9 @@ public class TrialStoreExplorer {
     
     else if (PRINT_STATE_CMD.equals(cmd))
       explorer.printState(Args.getValue(args, HASH));
+    
+    else if (ABOUT_STATE_CMD.equals(cmd))
+      explorer.printAboutState(Args.getValue(args, HASH));
     
     else if (LIST_CONFIFS_CMD.equals(cmd))
       explorer.printConfigs();
@@ -326,6 +394,7 @@ public class TrialStoreExplorer {
               Arrays.asList(
                   LIST_STATES_CMD,
                   PRINT_STATE_CMD,
+                  ABOUT_STATE_CMD,
                   LIST_CONFIFS_CMD,
                   PRINT_CONFIG_CMD,
                   LIST_TRANSFORMS_CMD,

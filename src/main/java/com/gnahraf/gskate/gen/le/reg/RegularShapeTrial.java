@@ -147,26 +147,52 @@ public class RegularShapeTrial {
     if (failed())
       throw new IllegalStateException(
           "attempt to invoke with " + point + " on already-failed instance");
+
+    final int timeToTarget = (int) (point.x() * periodMillis) - getTrialTime();
+    
     try {
       
-      // check the argument
+      NormPoint lastCommand;
       {
-        int lastIndex = commandsReceived.size() - 1;
+        final int count = commandsReceived.size();
+        final int lastIndex = count - 1;
         
-        if (lastIndex == -1) {
+        if (count == 0) {
           if (point.x() == 0)
             throw new IllegalArgumentException(point.toString());
+          
+          lastCommand = null;
         } else {
-          NormPoint lastCommand = commandsReceived.get(lastIndex);
-          if (lastCommand.x() >= point.x())
+          
+          lastCommand = commandsReceived.get(lastIndex);
+          
+          if (lastCommand.x() >= point.x()) {
+            
+            // allow this corner case (that I sometimes hit)
+            if (lastCommand.equals(point))
+              return true;
+            
             throw new IllegalArgumentException(
                 "out of sequence: last " + lastCommand + "; next " + point);
+          }
+          
+          
+          // if we've been flat-lining just extend the last command
+          if (lastCommand.y() == point.y() && count > 1 && commandsReceived.get(count- 2).y() == point.y()) {
+            commandsReceived.remove(lastIndex);
+          }
         }
       }
+
       
       commandsReceived.add(point);
       
-      int timeToTarget = (int) (point.x() * periodMillis) - getTrialTime();
+      
+      
+      if (lastCommand != null && lastCommand.y() == point.y())
+        return runSteady(timeToTarget);
+      
+      
       double edgeLength = point.y() * config.maxTetherLength;
       
       TetraShape targetShape = new TetraShape();
@@ -179,6 +205,27 @@ public class RegularShapeTrial {
       error = rx;
       return false;
     }
+    return true;
+  }
+  
+  
+  
+  public boolean runSteady(int millis) {
+    if (millis < 1) {
+      
+      if (millis == 0)
+        return true;
+      
+      throw new IllegalArgumentException("millis " + millis);
+    }
+    
+    try {
+      system.animateControlledMillis(millis, config.timeFineness, controller, controlMillis);
+    } catch (RuntimeException rx) {
+      error = rx;
+      return false;
+    }
+    
     return true;
   }
   

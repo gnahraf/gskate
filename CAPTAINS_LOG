@@ -1,0 +1,32 @@
+
+
+TODOs (I forget..)
+
+
+1. Normalized orbital shape commands should number 4, not 3. 3 was OK
+   on first orbit (all starting points in circular orbit equivalent).
+
+2. Each trial should complete immediately (or shortly) after the last
+   shape maneuver.
+
+3. Discovery phase should run at low time resolution; once a promising
+   maneuver is found, then rerun simulation over that stretch of time
+   at high resolution.
+
+DONE.
+
+..sort of. Experimenting with time resolution showed something's really
+amiss. I had assumed a time resolution of say 10 microseconds would be
+plenty accurate. When I notch up the resolution for the same maneuver
+up to 1 microsecond per step, the end state is quite different. So
+something must be broken. (It works perfectly fine, by the way, for
+untethered objects in orbit.)
+
+But I've been developing some ideas about how to better structure
+simulations, generally. And since I prefer to write new code than debug
+code I wish to ditch, and since this is for fun, anyway, I'm gonna give
+my new approach a shot. I wont be ditching everything: I like some of
+this code.
+
+  --Feb 9
+

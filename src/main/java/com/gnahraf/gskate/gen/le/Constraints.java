@@ -19,7 +19,6 @@ public class Constraints implements Cloneable {
   public double maxTensileForce = 500;
   public double maxCompressiveForce = 1;
   
-//  public double initTetherValue = 0;
   public double timeFineness = 6.7e-5;
   
   public Constraints clone() {

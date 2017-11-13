@@ -1,14 +1,14 @@
 /*
  * Copyright 2017 Babak Farhang
  */
-package com.gnahraf.sim;
+package com.gnahraf.sim.attic;
 
 
 
 /**
  *
  */
-public class AtomScheduler extends Atom {
+public class AtomScheduler2 extends Atom2 {
   
   private final TickTime timeResolution;
   private long ticks;
@@ -24,7 +24,7 @@ public class AtomScheduler extends Atom {
   /**
    * 
    */
-  public AtomScheduler(Atom tickAtom, long ticksPerSecond) {
+  public AtomScheduler2(Atom2 tickAtom, long ticksPerSecond) {
     this(tickAtom, ticksPerSecond, 0);
   }
   
@@ -32,10 +32,10 @@ public class AtomScheduler extends Atom {
   /**
    * 
    */
-  public AtomScheduler(Atom tickAtom, long ticksPerSecond, int priority) {
+  public AtomScheduler2(Atom2 tickAtom, long ticksPerSecond, int priority) {
     timeResolution = new TickTime(1, ticksPerSecond);
     
-    head = new Schedule(Atom.NULL, Long.MAX_VALUE, Integer.MIN_VALUE);
+    head = new Schedule(Atom2.NULL, Long.MAX_VALUE, Integer.MIN_VALUE);
     head.scheduledTick = Long.MAX_VALUE;
     
     schedule(tickAtom, timeResolution, priority, 0);
@@ -92,7 +92,7 @@ public class AtomScheduler extends Atom {
   }
   
   
-  public void schedule(Atom atom, TickTime period, int priority, long phase) {
+  public void schedule(Atom2 atom, TickTime period, int priority, long phase) {
     
     if (phase > 0)
       phase = period.asTickTime(phase).asMultipleOf(timeResolution).ticks;
@@ -137,14 +137,14 @@ public class AtomScheduler extends Atom {
   
   private static class Schedule {
     
-    final Atom atom;
+    final Atom2 atom;
     final long period;
     final int priority;
     
     long scheduledTick;
     Schedule next;
     
-    Schedule(Atom atom, long period, int priority) {
+    Schedule(Atom2 atom, long period, int priority) {
       this.atom = atom;
       this.period = period;
       this.priority = priority;

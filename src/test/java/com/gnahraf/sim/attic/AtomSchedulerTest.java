@@ -1,11 +1,15 @@
 /*
  * Copyright 2017 Babak Farhang
  */
-package com.gnahraf.sim;
+package com.gnahraf.sim.attic;
 
 import static org.junit.Assert.*;
 
 import org.junit.Test;
+
+import com.gnahraf.sim.attic.Atom2;
+import com.gnahraf.sim.attic.AtomScheduler2;
+import com.gnahraf.sim.attic.TickTime;
 
 /**
  *
@@ -18,7 +22,7 @@ public class AtomSchedulerTest {
     
     final int[] tickCount = { 0 };
     final int[] invocationCount = { 0 };
-    Atom testAtom = new Atom() {
+    Atom2 testAtom = new Atom2() {
       @Override
       public void tick(TickTime time) {
         tickCount[0] += time.ticks; // .. surprised this compiles (!)
@@ -27,7 +31,7 @@ public class AtomSchedulerTest {
     };
     
     final int ticksPerSecond = 12;
-    AtomScheduler scheduler = new AtomScheduler(testAtom, ticksPerSecond, 0);
+    AtomScheduler2 scheduler = new AtomScheduler2(testAtom, ticksPerSecond, 0);
     
     final TickTime timeResolution = scheduler.getTimeResolution();
     assertEquals(1, timeResolution.ticks);
@@ -58,7 +62,7 @@ public class AtomSchedulerTest {
   public void testTwo() {
     final TestAtom baseAtom = new TestAtom();
     final int ticksPerSecond = 1000;
-    AtomScheduler scheduler = new AtomScheduler(baseAtom, ticksPerSecond);
+    AtomScheduler2 scheduler = new AtomScheduler2(baseAtom, ticksPerSecond);
     {
       final TickTime timeResolution = scheduler.getTimeResolution();
       assertEquals(1, timeResolution.ticks);
@@ -82,7 +86,7 @@ public class AtomSchedulerTest {
 }
 
 
-class TestAtom extends Atom {
+class TestAtom extends Atom2 {
   private long tickCount;
   int invocationCount;
   

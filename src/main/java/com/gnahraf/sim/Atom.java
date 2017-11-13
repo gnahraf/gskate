@@ -4,25 +4,24 @@
 package com.gnahraf.sim;
 
 /**
- * The basic unit of a simulation is a function with
+ * A stateful atom of computation. The basic unit of a simulation is a function with
  * side effects. It's poor functional style, but hey, if
  * it's time we're simulating, it has side effects.
+ * <p/>
  *
  */
 public abstract class Atom {
   
-  public final static Atom NULL = new Atom() {
+  public static Atom NULL = new Atom() {
     @Override
-    public void tick(TickTime time) {  }
+    public void tick(double time, long steps) {  }
   };
   
-  
   /**
-   * Advances the state of the instance.
    * 
-   * @param time the time interval
+   * @param time in seconds and always positive
+   * @param steps number of steps (the more, the finer the time resolution)
    */
-  public abstract void tick(TickTime time);
-  
+  public abstract void tick(double time, long steps);
 
 }

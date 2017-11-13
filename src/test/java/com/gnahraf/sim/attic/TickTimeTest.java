@@ -1,11 +1,13 @@
 /*
  * Copyright 2017 Babak Farhang
  */
-package com.gnahraf.sim;
+package com.gnahraf.sim.attic;
 
 import static org.junit.Assert.*;
 
 import org.junit.Test;
+
+import com.gnahraf.sim.attic.TickTime;
 
 /**
  *

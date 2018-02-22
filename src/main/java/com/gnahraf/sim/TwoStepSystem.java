@@ -6,7 +6,7 @@ package com.gnahraf.sim;
 /**
  *
  */
-public class TwoStepSystem extends CheckedAtom {
+public class TwoStepSystem extends CheckedUniverse {
 
   /* (non-Javadoc)
    * @see com.gnahraf.sim.Atom#tick(double, long)

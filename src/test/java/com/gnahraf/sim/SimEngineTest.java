@@ -14,7 +14,7 @@ import com.gnahraf.sim.CheckpointStackTest.MockCheckpoint;
  */
 public class SimEngineTest {
   
-  static class MockSystem extends Atom {
+  static class MockSystem extends Universe {
     
     double timeSum;
     long stepsSum;

@@ -3,6 +3,8 @@
  */
 package com.gnahraf.gskate.model;
 
+import com.gnahraf.math.r3.Vector;
+
 /**
  * The simplest of potentials.
  */
@@ -14,7 +16,7 @@ public class SphericalBodyPotential extends Potential {
   private final double g;
   
   // planet coordinates
-  private double x, y, z;
+  private final Vector pos = new Vector();
   
   
 
@@ -37,39 +39,29 @@ public class SphericalBodyPotential extends Potential {
   
   public SphericalBodyPotential(SphericalBodyPotential copy) {
     this.g = copy.g;
-    this.x = copy.x;
-    this.y = copy.y;
-    this.z = copy.z;
+    this.pos.set(copy.pos);
   }
   
 
   @Override
   public void force(DynaVector bob) {
     // construct vector from bob to center of planet
-    double dx = x - bob.getX();
-    double dy = y - bob.getY();
-    double dz = z - bob.getZ();
+    Vector s = new Vector(pos).subtract(bob.getPos());
     
-    double distanceSq = dx*dx + dy*dy + dz*dz;
+    double distanceSq = s.magnitudeSq();
     double force = g / distanceSq;
     
-    // normalize bob -> planet vector
+    // set s to be the force in direction of bob -> planet vector
     double distance = Math.sqrt(distanceSq);
-    dx /= distance;
-    dy /= distance;
-    dz /= distance;
-    
-    double ax = dx * force;
-    double ay = dy * force;
-    double az = dz * force;
-    
-    bob.addAcceleration(ax, ay, az);
+    double scale = force / distance; // the r3 scale
+    s.multiply(scale);
+    bob.getAcc().add(s);
   }
 
   
   @Override
   public double pe(DynaVector bob) {
-    return -g / bob.distance(x, y, z);
+    return -g / bob.getPos().diffMagnitude(pos);
   }
   
   

@@ -21,7 +21,7 @@ package com.gnahraf.sim;
  *     multi body system.
  * </li>
  * <ul>
- * So a checkpoint is distinguishable from an {@linkplain Atom atom}
+ * So a checkpoint is distinguishable from the {@linkplain Universe model}
  * in that it is not really the meat of the simulation (although it
  * can definitely affect it).
  */
@@ -33,7 +33,7 @@ public class SimEngine {
   public final static long DEFAULT_TPS = 1000*1000*1000L;
   
   private final CheckpointStack checkpoints = new CheckpointStack();
-  private final Atom model;
+  private final Universe model;
   
   private final long timeTps;
   private long tickTime;
@@ -43,11 +43,11 @@ public class SimEngine {
   private double animationUnitTime;
   
   
-  public SimEngine(Atom model) {
+  public SimEngine(Universe model) {
     this(model, DEFAULT_TPS);
   }
   
-  public SimEngine(Atom model, long maxTicksPerSecond) {
+  public SimEngine(Universe model, long maxTicksPerSecond) {
     if (model == null)
       throw new IllegalArgumentException("null model");
     if (maxTicksPerSecond <= 0)

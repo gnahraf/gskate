@@ -5,6 +5,7 @@ package com.gnahraf.gskate.control;
 
 
 import com.gnahraf.gskate.model.Bob;
+import com.gnahraf.gskate.model.DynaVector;
 import com.gnahraf.gskate.model.Simulation;
 import com.gnahraf.gskate.model.TetherController;
 import com.gnahraf.gskate.model.Tetra;
@@ -110,7 +111,7 @@ public class ShapeFuzzyController extends TetherController {
     
     shape.copyFrom(system.getCraft().getShape());
     
-    Bob work = new Bob();
+    DynaVector work = new Bob();
     
     for (int index = 0; index < 6; ++index)
       lengthRates[index] = getTetherLengthRate(index, work);
@@ -177,7 +178,7 @@ public class ShapeFuzzyController extends TetherController {
       throw new IllegalStateException("system time " + system.getTime() + " < lrTime " + lrTime);
     }
     
-    Bob work = new Bob();
+    DynaVector work = new Bob();
     for (int i = 0; i < 6; ++i)
       adjustTether(i, work);
     
@@ -246,9 +247,9 @@ public class ShapeFuzzyController extends TetherController {
   private double collisionAvoidanceCounterBias = 1.035;
   
   
-  private double getTetherLengthRate(int tid, Bob work) {
+  private double getTetherLengthRate(int tid, DynaVector work) {
     Tetra craft = system.getCraft();
-    Bob diff = work;
+    DynaVector diff = work;
     
     TetraEdge edge = TetraEdge.forIndex(tid);
     // make diff a relative position and relative velocity vector
@@ -272,9 +273,9 @@ public class ShapeFuzzyController extends TetherController {
   }
   
   
-  private void adjustTether(int tid, Bob work) {
+  private void adjustTether(int tid, DynaVector work) {
     Tetra craft = system.getCraft();
-    Bob diff = work;
+    DynaVector diff = work;
     
     TetraEdge edge = TetraEdge.forIndex(tid);
     // make diff a relative position and relative velocity vector

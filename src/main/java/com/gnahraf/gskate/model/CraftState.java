@@ -89,7 +89,7 @@ public class CraftState {
   }
   
   
-  public Bob getCmBob() {
+  public DynaVector getCmBob() {
     return craft.newCmBob();
   }
 

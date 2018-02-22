@@ -28,5 +28,25 @@ code I wish to ditch, and since this is for fun, anyway, I'm gonna give
 my new approach a shot. I wont be ditching everything: I like some of
 this code.
 
-  --Feb 9
+  --Feb 9, 2017
 
+
+
+I intend to give the simple 2 bob setup a closer look. Perhaps I was
+obtuse to consider proper navigation without a volume spanning structure
+impossible. I still favor the tetrahedron to the 2 bob sling, but think
+I was jumping the gun from an exploratory standpoint.
+
+I'm cleaning up code as I think I better understand the problem space.
+
+One problem I had encountered was this notion of epicycles in the
+simulation. These typically involve checking values every so often
+(we're simulating an adaptive system). As these epicycles piled up, it
+was becoming difficult to efficiently structure these checks so that
+they wouldn't eat up computing time. Also, again because we're modeling
+an adaptive system, order matters (in the sense of determinism and
+repeatability), and this was tightened up.
+
+More refactorings/clean up underway.
+
+  -- Feb 21, 2018

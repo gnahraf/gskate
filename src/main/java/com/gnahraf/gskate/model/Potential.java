@@ -11,18 +11,18 @@ package com.gnahraf.gskate.model;
 public abstract class Potential {
   
   /**
-   * Updates the acceleration vector of the given bob by adding the
-   * gravitational force of this field.
+   * Updates the acceleration vector of the given thing by adding the
+   * gravitational acceleration (force) induced by this field.
    * 
-   * @see Bob#addAcceleration(double, double, double)
+   * @see DynaVector#addAcceleration(double, double, double)
    */
-  public abstract void force(Bob bob);
+  public abstract void force(DynaVector bob);
   
   
   /**
-   * Returns the potential energy of the given bob, that is, Joules per kg.
+   * Returns the potential energy of the given thing in Joules per kg.
    */
-  public abstract double pe(Bob bob);
+  public abstract double pe(DynaVector bob);
   
   
   

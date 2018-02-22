@@ -9,7 +9,7 @@ import java.util.List;
 
 import com.gnahraf.gskate.control.ShapeFuzzyController;
 import com.gnahraf.gskate.control.ShapeMetaController;
-import com.gnahraf.gskate.model.Bob;
+import com.gnahraf.gskate.model.DynaVector;
 import com.gnahraf.gskate.model.Simulation;
 import com.gnahraf.gskate.model.TetraShape;
 import com.gnahraf.util.data.DoubleDouble;
@@ -261,7 +261,7 @@ public class SimpleEquiTrial {
 
 
   private double estimateInitPeriod() {
-    Bob cm = system.getCraft().newCmBob();
+    DynaVector cm = system.getCraft().newCmBob();
     double r = cm.distance(0, 0, 0);
     double circum = 2 * r * Math.PI;
     double period = circum / cm.getV();

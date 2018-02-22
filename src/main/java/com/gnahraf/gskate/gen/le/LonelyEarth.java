@@ -4,8 +4,8 @@
 package com.gnahraf.gskate.gen.le;
 
 
-import com.gnahraf.gskate.model.Bob;
 import com.gnahraf.gskate.model.Constants;
+import com.gnahraf.gskate.model.DynaVector;
 import com.gnahraf.gskate.model.Simulation;
 import com.gnahraf.gskate.model.SphericalBodyPotential;
 
@@ -57,7 +57,7 @@ public class LonelyEarth extends Simulation {
     craft.getBob(3).setPosition(0, -scale,  scaled45);
     
     for (int i = 0; i < 4; ++i) {
-      Bob bob = craft.getBob(i);
+      DynaVector bob = craft.getBob(i);
       bob.setPosition(bob.getX() + r, bob.getY(), bob.getZ());
       bob.setVelocity(0, orbitalSpeed, 0);
     }

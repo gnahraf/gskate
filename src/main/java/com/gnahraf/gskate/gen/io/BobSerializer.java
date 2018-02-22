@@ -7,6 +7,7 @@ package com.gnahraf.gskate.gen.io;
 import java.nio.ByteBuffer;
 
 import com.gnahraf.gskate.model.Bob;
+import com.gnahraf.gskate.model.DynaVector;
 
 
 /**
@@ -23,7 +24,7 @@ public class BobSerializer {
    * Writes the given <tt>bob</tt> to the specified <tt>buffer</tt>. The position
    * of the buffer is advanced.
    */
-  public void write(Bob bob, ByteBuffer buffer) {
+  public void write(DynaVector bob, ByteBuffer buffer) {
     buffer.putDouble(bob.getX());
     buffer.putDouble(bob.getY());
     buffer.putDouble(bob.getZ());
@@ -41,7 +42,7 @@ public class BobSerializer {
   /**
    * Reads and returns the <tt>Bob</tt> encoded in the given <tt>buffer</tt>.
    */
-  public Bob read(ByteBuffer buffer) {
+  public DynaVector read(ByteBuffer buffer) {
     double x = buffer.getDouble();
     double y = buffer.getDouble();
     double z = buffer.getDouble();
@@ -54,7 +55,7 @@ public class BobSerializer {
 //    double ay = buffer.getDouble();
 //    double az = buffer.getDouble();
     
-    Bob bob = new Bob();
+    DynaVector bob = new Bob();
     bob.setPosition(x, y, z);
     bob.setVelocity(vx, vy, vz);
 //    bob.setAcceleration(ax, ay, az);

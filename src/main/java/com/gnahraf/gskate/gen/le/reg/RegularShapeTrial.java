@@ -11,8 +11,8 @@ import com.gnahraf.gskate.control.ShapeFuzzyController;
 import com.gnahraf.gskate.control.ShapeMetaController;
 import com.gnahraf.gskate.gen.le.Constraints;
 import com.gnahraf.gskate.gen.le.LonelyEarth;
-import com.gnahraf.gskate.model.Bob;
 import com.gnahraf.gskate.model.CraftState;
+import com.gnahraf.gskate.model.DynaVector;
 import com.gnahraf.gskate.model.Simulation;
 import com.gnahraf.gskate.model.SphericalBodyPotential;
 import com.gnahraf.gskate.model.TetraShape;
@@ -326,7 +326,7 @@ public class RegularShapeTrial {
    * We'll be keeping track of the periapsis and apoapsis vectors soon anywqy.
    */
   private double estimateInitPeriod() {
-    Bob cm = system.getCraft().newCmBob();
+    DynaVector cm = system.getCraft().newCmBob();
     double r = cm.distance(0, 0, 0);
     double circum = 2 * r * Math.PI;
     double period = circum / cm.getV();

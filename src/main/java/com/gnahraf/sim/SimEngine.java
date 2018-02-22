@@ -27,7 +27,10 @@ package com.gnahraf.sim;
  */
 public class SimEngine {
   
-  public final static long DEFAULT_TPS = 1000000000L;
+  /**
+   * Default ticks per second 10<sup><small>9</small></sup> (nanosecond resolution).
+   */
+  public final static long DEFAULT_TPS = 1000*1000*1000L;
   
   private final CheckpointStack checkpoints = new CheckpointStack();
   private final Atom model;
@@ -45,14 +48,14 @@ public class SimEngine {
   }
   
   public SimEngine(Atom model, long maxTicksPerSecond) {
-    this.model = model;
-    this.timeTps = maxTicksPerSecond;
-    setAnimationTps(maxTicksPerSecond);
-    
     if (model == null)
       throw new IllegalArgumentException("null model");
     if (maxTicksPerSecond <= 0)
       throw new IllegalArgumentException("maxTicksPerSecond" + maxTicksPerSecond);
+    
+    this.model = model;
+    this.timeTps = maxTicksPerSecond;
+    setAnimationTps(maxTicksPerSecond);
   }
 
 
@@ -85,7 +88,7 @@ public class SimEngine {
         tickTime += animationTpsFactor;
         --animationTicksRemaining;
       } else {
-        double time = animationTicksToCheckPoint / animationTps;
+        double time = ((double) animationTicksToCheckPoint) / animationTps;
         model.tick(time, animationTicksToCheckPoint);
         
         tickTime += (animationTicksToCheckPoint * animationTpsFactor);

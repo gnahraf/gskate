@@ -70,7 +70,7 @@ public class TetraTest {
   }
   
   
-  public static void assertBobsEqual(Bob expected, Bob actual) {
+  public static void assertBobsEqual(DynaVector expected, DynaVector actual) {
     assertEquals(expected.getX(), actual.getX(), 0);
     assertEquals(expected.getY(), actual.getY(), 0);
     assertEquals(expected.getZ(), actual.getZ(), 0);
@@ -90,7 +90,7 @@ public class TetraTest {
     Tetra craft = new Tetra();
     double x = 0, y = 1, z = 2;
     for (int i = 0; i < 4; ++i) {
-      Bob bob = craft.getBob(i);
+      DynaVector bob = craft.getBob(i);
       x = x + 1.5;
       y = y + 1.5;
       z = z + 1.5;

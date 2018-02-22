@@ -11,7 +11,7 @@ package com.gnahraf.gskate.model;
  */
 public class Tetra {
   
-  private final Bob[] bobs = new Bob[4];
+  private final DynaVector[] bobs = new DynaVector[4];
   
   /**
    * Lower diagonal of a 4x4 matrix (w/o diagonal elements) laid out linearly
@@ -40,7 +40,7 @@ public class Tetra {
   
   
   
-  public Bob getBob(int index) throws IndexOutOfBoundsException {
+  public DynaVector getBob(int index) throws IndexOutOfBoundsException {
     return bobs[index];
   }
   
@@ -53,8 +53,8 @@ public class Tetra {
    * Returns a bob representing the center of mass, the group speed and the group
    * acceleration.
    */
-  public Bob newCmBob() {
-    Bob bob = new Bob();
+  public DynaVector newCmBob() {
+    DynaVector bob = new Bob();
     for (int i = 0; i < 4; ++i)
       bob.add(bobs[i]);
     
@@ -94,7 +94,7 @@ public class Tetra {
   public double getCmKe() {
     double vx, vy, vz = vy = vx = 0;
     for (int i = 0; i < 4; ++i) {
-      Bob bob = bobs[i];
+      DynaVector bob = bobs[i];
       vx += bob.getVx();
       vy += bob.getVy();
       vz += bob.getVz();
@@ -190,7 +190,7 @@ public class Tetra {
     
     // clear and set to gravitational forces
     for (int i = 0; i < 4; ++i) {
-      Bob bob = bobs[i];
+      DynaVector bob = bobs[i];
       bob.clearAcceleration();
       potential.force(bob);
     }
@@ -270,7 +270,7 @@ public class Tetra {
   private void addTetherForces(int tetherIndex) {
     
     // find the bobs a and b at the ends of this tether
-    Bob a, b;
+    DynaVector a, b;
     {
       
       TetraEdge edge = TetraEdge.forIndex(tetherIndex);
@@ -285,6 +285,8 @@ public class Tetra {
     double abx, aby, abz;
     {
       double distance = a.distance(b);
+      if (distance == 0)
+        throw new IllegalStateException("Woa.. bobs " + a + " and " + b + " have collided (distance zero)");
       abx = (b.getX() - a.getX()) / distance;
       aby = (b.getY() - a.getY()) / distance;
       abz = (b.getZ() - a.getZ()) / distance;

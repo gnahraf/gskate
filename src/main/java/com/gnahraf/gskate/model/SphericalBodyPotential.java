@@ -44,7 +44,7 @@ public class SphericalBodyPotential extends Potential {
   
 
   @Override
-  public void force(Bob bob) {
+  public void force(DynaVector bob) {
     // construct vector from bob to center of planet
     double dx = x - bob.getX();
     double dy = y - bob.getY();
@@ -68,7 +68,7 @@ public class SphericalBodyPotential extends Potential {
 
   
   @Override
-  public double pe(Bob bob) {
+  public double pe(DynaVector bob) {
     return -g / bob.distance(x, y, z);
   }
   

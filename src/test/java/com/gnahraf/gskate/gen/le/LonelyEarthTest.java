@@ -5,8 +5,8 @@ import java.text.DecimalFormat;
 
 import org.junit.Test;
 
-import com.gnahraf.gskate.model.Bob;
 import com.gnahraf.gskate.model.Constants;
+import com.gnahraf.gskate.model.DynaVector;
 import com.gnahraf.gskate.model.Tetra;
 import com.gnahraf.gskate.model.TetraEdge;
 
@@ -64,7 +64,7 @@ public class LonelyEarthTest {
     Tetra craft = system.getCraft();
     double x, y, z = y = x = 0;
     for (int i = 0; i < 4; ++i) {
-      Bob bob = craft.getBob(i);
+      DynaVector bob = craft.getBob(i);
       x += bob.getX();
       y += bob.getY();
       z += bob.getZ();

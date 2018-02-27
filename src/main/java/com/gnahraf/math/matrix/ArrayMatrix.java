@@ -1,7 +1,7 @@
 /*
  * Copyright 2016 Babak Farhang
  */
-package com.gnahraf.math;
+package com.gnahraf.math.matrix;
 
 /**
  *
@@ -105,8 +105,9 @@ public class ArrayMatrix extends Matrix {
   }
   
   
-  public void val(double value, int column, int row) throws IndexOutOfBoundsException {
+  public ArrayMatrix val(double value, int column, int row) throws IndexOutOfBoundsException {
     array[column + row*columns] = value;
+    return this;
   }
   
   

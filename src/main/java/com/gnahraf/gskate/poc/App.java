@@ -1,4 +1,4 @@
-package com.gnahraf.gskate;
+package com.gnahraf.gskate.poc;
 
 
 import javax.swing.BoxLayout;

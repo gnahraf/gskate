@@ -1,7 +1,7 @@
 /*
  * Copyright 2016 Babak Farhang
  */
-package com.gnahraf.gskate;
+package com.gnahraf.gskate.poc;
 
 /**
  *

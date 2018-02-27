@@ -1,7 +1,7 @@
 /*
  * Copyright 2016 Babak Farhang
  */
-package com.gnahraf.math;
+package com.gnahraf.math.matrix;
 
 
 /**
@@ -41,6 +41,12 @@ public abstract class Matrix {
         det += factor * getMinor(c, 0).determinant();
     }
     return det;
+  }
+  
+  
+  
+  public Matrix product(Matrix m) {
+    return new MatrixComposition(this, m);
   }
 
 }

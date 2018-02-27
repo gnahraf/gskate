@@ -1,9 +1,9 @@
 /*
  * Copyright 2016 Babak Farhang
  */
-package com.gnahraf.gskate;
+package com.gnahraf.gskate.poc;
 
-import com.gnahraf.gskate.BigPlanet.AnimationListener;
+import com.gnahraf.gskate.poc.BigPlanet.AnimationListener;
 
 /**
  *

@@ -7,6 +7,9 @@ import com.gnahraf.math.r3.Vector;
 
 /**
  * The simplest of potentials.
+ * 
+ * <h4>Not Safe Under Concuurent Access!</h4>
+ * Clone a copy if you need to.
  */
 public class SphericalBodyPotential extends Potential {
   
@@ -15,8 +18,15 @@ public class SphericalBodyPotential extends Potential {
    */
   private final double g;
   
-  // planet coordinates
+  /**
+   * Center of planet coordinates.
+   */
   private final Vector pos = new Vector();
+  
+  
+
+  // work vector recycling ok since single threaded
+  private final Vector work = new Vector();
   
   
 
@@ -46,14 +56,14 @@ public class SphericalBodyPotential extends Potential {
   @Override
   public void force(DynaVector bob) {
     // construct vector from bob to center of planet
-    Vector s = new Vector(pos).subtract(bob.getPos());
+    Vector s = work.set(pos).subtract(bob.getPos());
     
     double distanceSq = s.magnitudeSq();
-    double force = g / distanceSq;
+    double force = g / distanceSq;  // force per kg
     
-    // set s to be the force in direction of bob -> planet vector
+    // set *s* to be the force in direction of bob -> planet vector
     double distance = Math.sqrt(distanceSq);
-    double scale = force / distance; // the r3 scale
+    double scale = force / distance; // the R-cubed scale
     s.multiply(scale);
     bob.getAcc().add(s);
   }

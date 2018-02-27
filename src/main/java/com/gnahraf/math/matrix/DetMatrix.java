@@ -1,7 +1,7 @@
 /*
  * Copyright 2016 Babak Farhang
  */
-package com.gnahraf.math;
+package com.gnahraf.math.matrix;
 
 /**
  *
@@ -47,10 +47,11 @@ public class DetMatrix extends ArrayMatrix {
   
 
   @Override
-  public void val(double value, int column, int row)
+  public DetMatrix val(double value, int column, int row)
       throws IndexOutOfBoundsException {
     super.val(value, column, row);
     dirty = true;
+    return this;
   }
 
   @Override

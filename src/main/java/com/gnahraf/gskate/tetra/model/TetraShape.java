@@ -6,7 +6,7 @@ package com.gnahraf.gskate.tetra.model;
 
 import static com.gnahraf.util.list.DoubleArrayList.asList;
 
-import com.gnahraf.math.DetMatrix;
+import com.gnahraf.math.matrix.DetMatrix;
 
 /**
  * A tetrahedron specified by the lengths of its edges. So this description

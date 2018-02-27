@@ -1,7 +1,7 @@
 /*
  * Copyright 2016 Babak Farhang
  */
-package com.gnahraf.math;
+package com.gnahraf.math.matrix;
 
 /**
  *

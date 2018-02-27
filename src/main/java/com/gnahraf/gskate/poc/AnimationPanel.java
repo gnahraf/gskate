@@ -1,7 +1,7 @@
 /*
  * Copyright 2016 Babak Farhang
  */
-package com.gnahraf.gskate;
+package com.gnahraf.gskate.poc;
 
 
 import java.awt.BasicStroke;
@@ -18,7 +18,7 @@ import java.text.NumberFormat;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
-import com.gnahraf.gskate.BigPlanet.AnimationListener;
+import com.gnahraf.gskate.poc.BigPlanet.AnimationListener;
 
 /**
  *

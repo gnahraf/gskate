@@ -17,6 +17,10 @@ public class Constants {
   
   public final static double EARTH_MASS = 5.972e24;
   
+  public final static double G_EARTH = G * EARTH_MASS;
+  
   public final static double EARTH_RADIUS = 6.371e6;
+
+  public static final double MIN_SURFACE_DISTANCE = 100 * 1000;
 
 }

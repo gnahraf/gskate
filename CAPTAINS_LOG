@@ -50,3 +50,15 @@ repeatability), and this was tightened up.
 More refactorings/clean up underway.
 
   -- Feb 21, 2018
+  
+So, there are 2 general ideas I'm looking at with the sling.
+
+1. Uneven mass distribution
+2. Spinning the sling on an axis not necessarily tangent to the
+   normal of the orbital plane. (The PoC 2D simulation didn't allow
+   for this. Moved that stuff under the .poc package, btw.)
+   
+   -- March 1, 2018
+
+
+

@@ -4,12 +4,19 @@
 package com.gnahraf.gskate.sling;
 
 
+import java.util.function.Function;
+
 import com.gnahraf.gskate.model.PointMass;
 import com.gnahraf.gskate.model.Potential;
 import com.gnahraf.math.r3.Vector;
 
 /**
- *
+ * Two bobs A and B connected by a mass-less tether. The tether can repel the
+ * bobs minimally, but it's principal function is to pull them together.
+ * <p/>
+ * The bobs are not necessarily of equal mass. If skewed, then by convention
+ * bob A is the more massive than bob B.
+ * 
  */
 public class Sling {
   
@@ -63,6 +70,10 @@ public class Sling {
   
 
 
+  /**
+   * Updates the acceleration vectors of bobs A and B reflecting both
+   * gravitation and the force of the tether. This operation is idempotent.
+   */
   public void updateForces() {
     bobA.clearAcceleration();
     bobB.clearAcceleration();
@@ -120,6 +131,44 @@ public class Sling {
    */
   public PointMass getBobB() {
     return bobB;
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  // Convenience methods..
+  
+  
+  
+  public Vector getCm() {
+    return cmVector(b -> b.getPos());
+  }
+  
+  
+  public Vector getCmVel() {
+    return cmVector(b -> b.getVel());
+  }
+  
+  
+  public Vector getCmAcc() {
+    return cmVector(b -> b.getAcc());
+  }
+  
+  
+  public double getMass() {
+    return bobA.getMass() + bobB.getMass();
+  }
+  
+  
+  private Vector cmVector(Function<PointMass, Vector> func) {
+    Vector a = new Vector(func.apply(bobA)).multiply(bobA.getMass());
+    Vector b = new Vector(func.apply(bobB)).multiply(bobB.getMass());
+    return a.add(b).divide(bobA.getMass() + bobB.getMass());
   }
 
 }

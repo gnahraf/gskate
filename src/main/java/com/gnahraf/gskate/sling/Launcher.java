@@ -37,8 +37,8 @@ import com.gnahraf.math.r3.Vector;
  * The default orientation is with bob B (the lighter bob) directly below
  * bob A in the direction of the planet. (Future note: Actually, I'll probably
  * refine this to be oriented perpendicular to the velocity vector and in
- * the plane that spans the sling's position, the planet's center, and is
- * parallel to the velocity vector.)
+ * the plane that spans the sling's position, the planet's center, and whose
+ * normal is perpendicular to the velocity vector.)
  * <p/>
  * So given the initial coordinates, the initial orientation (assuming an
  * initial circular orbit) works out to be along the x-axis.

@@ -166,7 +166,7 @@ public class Vector extends Matrix {
   }
   
   
-  public Vector add(Vector v, float scale) {
+  public Vector add(Vector v, double scale) {
     x += v.x * scale;
     y += v.y * scale;
     z += v.z * scale;
@@ -181,6 +181,13 @@ public class Vector extends Matrix {
     return this;
   }
   
+  
+  /**
+   * @throws ArithmeticException if <tt>s</tt> is zero
+   */
+  public Vector divide(double s) {
+    return multiply(1/s);
+  }
   
   public Vector multiply(double s) {
     x *= s;
@@ -238,45 +245,35 @@ public class Vector extends Matrix {
     return x;
   }
 
-  public Vector setX(double x) {
-    this.x = x;
-    return this;
-  }
-
   public double getY() {
     return y;
-  }
-
-  public Vector setY(double y) {
-    this.y = y;
-    return this;
   }
 
   public double getZ() {
     return z;
   }
 
-  public Vector setZ(double z) {
-    this.z = z;
-    return this;
-  }
+//  public Vector setZ(double z) {
+//    this.z = z;
+//    return this;
+//  }
 
   
   
-  public Vector addX(double dx) {
-    x += dx;
-    return this;
-  }
-
-  public Vector addY(double dy) {
-    y += dy;
-    return this;
-  }
-
-  public Vector addZ(double dz) {
-    z += dz;
-    return this;
-  }
+//  public Vector addX(double dx) {
+//    x += dx;
+//    return this;
+//  }
+//
+//  public Vector addY(double dy) {
+//    y += dy;
+//    return this;
+//  }
+//
+//  public Vector addZ(double dz) {
+//    z += dz;
+//    return this;
+//  }
   
   
   public Vector add(double dx, double dy, double dz) {
@@ -340,6 +337,13 @@ public class Vector extends Matrix {
   }
   
   
+  public FixedVector toFixed() {
+    return new FixedVector(this);
+  }
   
+  
+  public boolean isFixed() {
+    return false;
+  }
 
 }

@@ -21,7 +21,7 @@ public class TablePrint extends PrintSupport {
   
   @SuppressWarnings("serial")
   private NumberFormat numberFormat =
-      new DecimalFormat("#,###.##") {
+      new DecimalFormat("#,###.###") {
 
         @Override
         public StringBuffer format(double number, StringBuffer result, FieldPosition fieldPosition) {

@@ -147,6 +147,16 @@ public class SimEngine {
 
 
 
+  /**
+   * Schedules a (possibly periodic) checkpoint.
+   * 
+   * @param checkpoint note equality semantics matter
+   * @param time       time to be first scheduled
+   * @param period     non-positive means not periodic
+   * @param priority   if 2 checkpoints are scheduled at the
+   *                   same tick, then they are executed in
+   *                   order of decreasing priority
+   */
   public void schedule(Checkpoint checkpoint, double time, double period, int priority) {
     long tickTime = (long) (time * timeTps);
     long periodTicks = (long) (period * timeTps);

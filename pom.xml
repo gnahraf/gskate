@@ -38,6 +38,7 @@
         <configuration>
           <programs>
           
+            <!--
             <program>
               <mainClass>com.gnahraf.gskate.gen.le.reg.RegularShapeTrialEnsemble</mainClass>
               <id>regorbit</id>
@@ -46,6 +47,13 @@
             <program>
               <mainClass>com.gnahraf.gskate.gen.le.io.TrialStoreExplorer</mainClass>
               <id>storex</id>
+            </program>
+            -->
+            
+            
+            <program>
+              <mainClass>com.gnahraf.gskate.sling.le.PlayDemo</mainClass>
+              <id>sling</id>
             </program>
             
             

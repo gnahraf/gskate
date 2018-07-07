@@ -73,6 +73,9 @@ public class Sling {
   /**
    * Updates the acceleration vectors of bobs A and B reflecting both
    * gravitation and the force of the tether. This operation is idempotent.
+   * 
+   * @throws IllegalStateException
+   *         if the bobs are at the same location
    */
   public void updateForces() {
     bobA.clearAcceleration();
@@ -135,6 +138,16 @@ public class Sling {
   
   
   
+  /**
+   * Animates the sling (linear calculation) by <tt>dt</tt> seconds. Assumes
+   * {@linkplain #updateForces()} has already been called.
+   * 
+   * @param dt  a sliver of time; results undefined for non-positive value
+   */
+  public void animate(double dt) {
+    bobA.animate(dt);
+    bobB.animate(dt);
+  }
   
   
   
@@ -170,5 +183,20 @@ public class Sling {
     Vector b = new Vector(func.apply(bobB)).multiply(bobB.getMass());
     return a.add(b).divide(bobA.getMass() + bobB.getMass());
   }
+
+  public Potential getPotential() {
+    return potential;
+  }
+  
+  
+  public double getKe() {
+    return bobA.getKe() + bobB.getKe();
+  }
+  
+  
+  public double getPe() {
+    return bobA.getPe(potential) + bobB.getPe(potential);
+  }
+  
 
 }

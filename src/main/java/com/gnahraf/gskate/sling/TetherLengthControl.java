@@ -23,6 +23,23 @@ public class TetherLengthControl {
   private double maxTetherStength = 100;
   private double maxTetherIncrement = maxTetherStength / 1000;
   
+  private double maxLengthSpeed = 1;
+  
+  private Snapshot snap;
+  
+  private static class Snapshot {
+    final double length;
+    final double speed;
+    double tetherDelta;
+    final double time;
+    
+    Snapshot(double length, double speed, double time) {
+      this.length = length;
+      this.speed = speed;
+      this.time = time;
+    }
+  }
+  
 
   /**
    * 
@@ -32,6 +49,89 @@ public class TetherLengthControl {
     if (craft == null)
       throw new IllegalArgumentException("null craft");
   }
+  
+  
+  public void init(double time) {
+    this.snap = snap(time);
+  }
+  
+  
+  private Snapshot snap(double time) {
+    PointMass a = craft.getBobA();
+    PointMass b = craft.getBobB();
+
+    double length = a.getPos().diffMagnitude(b.getPos());
+    
+    Vector a2bHat = new Vector(b.getPos()).subtract(a.getPos()).toUnit();
+    Vector a2bVel = new Vector(b.getVel()).subtract(a.getVel());
+    
+    double speed = a2bVel.dot(a2bHat);
+    
+    return new Snapshot(length, speed, time);
+  }
+  
+  
+  /**
+   * Adjusts the craft's tether in an attempt to reach the target
+   * length. The idea here is that the more frequently this method is
+   * invoked, the better the control.
+   * <p/>
+   * Note, performance gains for optimizing this code should be minimal;
+   * we cycle through control invocations much less frequently than the
+   * rest of the simulation.
+   */
+  public void adjustTether(double time) {
+    if (time <= snap.time)
+      throw new IllegalStateException(snap.time + " : " + time);
+    Snapshot now = snap(time);
+    
+    double acc = (now.speed - snap.speed) / (time - snap.time);
+    double distanceDelta = targetLength - now.length;
+    
+    /*
+     * s = ut + at^2/2
+     * a = 2(s - ut)/t^2
+     *   = 2(s/t - u)/t
+     */
+
+    double t = fuzzyTimeToTarget;
+    double s = distanceDelta;
+    double u = now.speed;
+    double targetAcc = 2*(s/t - u)/t;
+    
+    double targetAccDelta = targetAcc - acc;
+    double tadSign = Math.signum(targetAccDelta);
+    
+    if (tadSign * targetAccDelta >= MIN_DENOM_DELTA) {
+      double tetherDelta;
+      if (Math.abs(snap.tetherDelta) < MIN_DENOM_DELTA ||
+          Math.abs(acc) < MIN_DENOM_DELTA) {
+        tetherDelta = -tadSign * ADHOC_TETHER_DELTA;
+      } else {
+        double effectRatio = snap.tetherDelta / acc;
+        if (effectRatio <= 0)
+          tetherDelta = -tadSign * ADHOC_TETHER_DELTA;
+        else
+          tetherDelta = -tadSign * targetAccDelta * effectRatio;
+      }
+      if (Math.abs(tetherDelta) > maxTetherIncrement)
+        tetherDelta = -tadSign * maxTetherIncrement;
+      
+      double tether = craft.getTether() + tetherDelta;
+      if (tether < 0)
+        tether = 0;
+      else if (tether > maxTetherStength)
+        tether = maxTetherStength;
+      
+      now.tetherDelta = tether - craft.getTether();
+      craft.setTether(tether);
+      snap = now;
+    }
+    
+  }
+
+  private final static double ADHOC_TETHER_DELTA = 0.001; // Newtons
+  private final static double MIN_DENOM_DELTA = 0.0001;
   
   
   /**
@@ -47,7 +147,7 @@ public class TetherLengthControl {
    * we cycle through control invocations much less frequently than the
    * rest of the simulation.
    */
-  public void adjustTether() {
+  public void adjustTetherOld() {
     PointMass a = craft.getBobA();
     PointMass b = craft.getBobB();
 
@@ -133,7 +233,7 @@ public class TetherLengthControl {
     double tetherLengthAcc =
         new Vector(b.getAcc()).subtract(bCentripetal)
         .subtract(a.getAcc()).add(aCentripetal)
-        .dot(aRadiusHat);
+        .dot(bRadiusHat);
 
     
     // now we're only concerned with the component of
@@ -158,13 +258,12 @@ public class TetherLengthControl {
     if (Math.abs(deltaForce) > maxTetherIncrement)
       deltaForce = Math.signum(deltaForce) * maxTetherIncrement;
     
-    double tether = craft.getTether() + deltaForce;
-    if (tether < 0)
-      tether = 0;
-    else if (tether > maxTetherStength)
-      tether = maxTetherStength;
-    
-    craft.setTether(tether);
+    double tether = craft.getTether() - deltaForce;
+    if (tether > 0) {
+      if (tether > maxTetherStength)
+        tether = maxTetherStength;
+      craft.setTether(tether);
+    }
   }
   
   
@@ -222,6 +321,25 @@ public class TetherLengthControl {
     if (maxTetherIncrement <= 0)
       throw new IllegalArgumentException("maxTetherIncrement " + maxTetherIncrement);
     this.maxTetherIncrement = maxTetherIncrement;
+  }
+
+
+  /**
+   * @return the maxLengthSpeed
+   */
+  public double getMaxLengthSpeed() {
+    return maxLengthSpeed;
+  }
+
+
+  /**
+   * 
+   * @param maxLengthSpeed the maxLengthSpeed to set
+   */
+  public void setMaxLengthSpeed(double maxLengthSpeed) {
+    if (maxLengthSpeed <= 0)
+      throw new IllegalArgumentException("maxLengthSpeed " + maxLengthSpeed);
+    this.maxLengthSpeed = maxLengthSpeed;
   }
 
 }

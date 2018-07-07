@@ -22,6 +22,10 @@ up to 1 microsecond per step, the end state is quite different. So
 something must be broken. (It works perfectly fine, by the way, for
 untethered objects in orbit.)
 
+**
+March 5, 2018 Update: it's the stateful controller that's the problem.
+**
+
 But I've been developing some ideas about how to better structure
 simulations, generally. And since I prefer to write new code than debug
 code I wish to ditch, and since this is for fun, anyway, I'm gonna give
@@ -59,6 +63,12 @@ So, there are 2 general ideas I'm looking at with the sling.
    for this. Moved that stuff under the .poc package, btw.)
    
    -- March 1, 2018
+   
+ Status update before break in development
+ 
+ I need visualization, so I'm playing with Java 3D. Want something like a
+ frame-in-frame display.. the small frame indicates trajectory; the larger
+ frame, an interactive 3D projection of the craft against background.
 
 
 

@@ -38,11 +38,11 @@ public class FixedVector extends Vector {
   }
 
   public FixedVector(Vector copy) {
-    super(copy);
+    super(copy.getX(), copy.getY(), copy.getZ());
   }
 
   public FixedVector(Matrix copy) {
-    super(copy);
+    super(copy.val(0, 0), copy.val(0, 1), copy.val(0, 2));
   }
   
   

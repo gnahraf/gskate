@@ -52,6 +52,13 @@ public class PointMass extends DynaVector {
   }
   
   
+  public double getKe() {
+    return mass * getVel().magnitudeSq() / 2;
+  }
   
+  
+  public double getPe(Potential potential) {
+    return mass * potential.pe(this);
+  }
 
 }

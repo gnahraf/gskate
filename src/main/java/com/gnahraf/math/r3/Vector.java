@@ -29,7 +29,9 @@ public class Vector extends Matrix {
   }
   
   public Vector(double x, double y, double z) {
-    set(x, y, z);
+    this.x = x;
+    this.y = y;
+    this.z = z;
   }
   
   
@@ -344,6 +346,11 @@ public class Vector extends Matrix {
   
   public boolean isFixed() {
     return false;
+  }
+  
+  
+  public String toString() {
+    return "(" + x + "," + y + "," + z + ")";
   }
 
 }

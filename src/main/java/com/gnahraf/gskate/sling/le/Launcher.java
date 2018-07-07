@@ -1,10 +1,11 @@
 /*
  * Copyright 2018 Babak Farhang
  */
-package com.gnahraf.gskate.sling;
+package com.gnahraf.gskate.sling.le;
 
 import com.gnahraf.gskate.model.Constants;
 import com.gnahraf.gskate.model.SphericalBodyPotential;
+import com.gnahraf.gskate.sling.Sling;
 import com.gnahraf.math.matrix.MatrixComposition;
 import com.gnahraf.math.r3.Matrix3x3;
 import com.gnahraf.math.r3.Vector;
@@ -55,12 +56,6 @@ public class Launcher {
   private double a2bRatio = 2.0;
   
 
-  /**
-   * 
-   */
-  public Launcher() {
-    // TODO Auto-generated constructor stub
-  }
 
 
   
@@ -79,6 +74,11 @@ public class Launcher {
   }
   
   
+  /**
+   * Neither pitch, nor roll; the other one :)
+   * 
+   * @param degrees +/- means counter-clockwise/clockwise
+   */
   public void yaw(double degrees) {
     if (degrees == 0)
       return;
